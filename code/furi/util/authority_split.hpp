@@ -21,18 +21,12 @@ struct authority_split
 authority_split split_authority(std::string_view a)
 {
     authority_split ret;
-    auto p = a.begin();
 
-    for (; p != a.end(); ++p)
+    auto pos = a.find_first_of('@');
+    if (pos != std::string_view::npos)
     {
-        if (*p == '@')
-        {
-            // found user info
-            ret.userinfo = strutil::make_string_view(a.begin(), p);
-            a = strutil::make_string_view(p + 1, a.end()); // slice userinfo off
-            p = a.begin(); // somewhat redundant but we appease MSSTL here (no mixing of iterators)
-            break;
-        }
+        ret.userinfo = a.substr(0, pos);
+        a = a.substr(pos + 1); // slice userinfo off
     }
 
     if (a.empty()) return {}; // invalid uri
@@ -42,6 +36,7 @@ authority_split split_authority(std::string_view a)
     {
         auto pos = a.find_first_of(']');
         if (pos == std::string_view::npos) return {}; // invalid uri
+        ++pos; // include the ']'
         ret.host = a.substr(0, pos);
         a.remove_prefix(pos);
         if (a.empty()) return ret;
@@ -57,7 +52,7 @@ authority_split split_authority(std::string_view a)
     // will update if needed
     ret.host = a;
 
-    for (; p != a.end(); ++p)
+    for (auto p = a.begin(); p != a.end(); ++p)
     {
         if (*p == ':')
         {
@@ -89,7 +84,7 @@ inline std::string_view get_host_from_authority(std::string_view a)
     pos = a.find_first_of(']');
     if (pos != std::string_view::npos)
     {
-        return a.substr(0, pos);
+        return a.substr(0, pos+1);
     }
     pos = a.find_first_of(':');
     return a.substr(0, pos);
@@ -97,13 +92,13 @@ inline std::string_view get_host_from_authority(std::string_view a)
 
 inline std::string_view get_port_from_authority(std::string_view a)
 {
-    auto pos = a.find_first_of('@');
-    if (pos == std::string_view::npos) pos = 0;
-    pos = a.find_first_of(']', pos); // skip ipv6
-    if (pos == std::string_view::npos) pos = 0;
-    pos = a.find_first_of(':', pos);
-    if (pos == std::string_view::npos) return {};
-    return a.substr(pos + 1);
+    auto upos = a.find_first_of('@');
+    if (upos == std::string_view::npos) upos = 0;
+    auto v6pos = a.find_first_of(']', upos); // skip ipv6
+    if (v6pos == std::string_view::npos) v6pos = upos;
+    auto ppos = a.find_first_of(':', v6pos);
+    if (ppos == std::string_view::npos) return {};
+    return a.substr(ppos + 1);
 }
 
 }
