@@ -14,7 +14,7 @@ namespace furi::strutil
 {
 
 template <typename CI> // contiguous iterator
-inline constexpr std::string_view make_string_view(CI begin, CI end)
+inline constexpr std::string_view make_string_view(CI begin, CI end) noexcept
 {
     if (begin == end) return {};
     return std::string_view(&(*begin), end - begin);

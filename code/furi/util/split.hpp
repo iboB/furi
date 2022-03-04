@@ -21,7 +21,7 @@ struct split
 };
 
 // get all parts at once
-inline split split_uri(std::string_view u)
+inline split split_uri(std::string_view u) noexcept
 {
     split ret;
 
@@ -112,7 +112,7 @@ inline split split_uri(std::string_view u)
 
 // indivitual getters
 
-inline std::string_view get_scheme_from_uri(std::string_view u)
+inline std::string_view get_scheme_from_uri(std::string_view u) noexcept
 {
     for (auto& c : u)
     {
@@ -122,7 +122,7 @@ inline std::string_view get_scheme_from_uri(std::string_view u)
     return {};
 }
 
-inline std::string_view get_authority_from_uri(std::string_view u)
+inline std::string_view get_authority_from_uri(std::string_view u) noexcept
 {
     auto s = get_scheme_from_uri(u);
     auto sans_scheme = s.empty() ? u : u.substr(s.length() + 1);
@@ -142,7 +142,7 @@ inline std::string_view get_authority_from_uri(std::string_view u)
     return sans_scheme; // uri has authority and nothing else
 }
 
-inline std::string_view get_path_from_uri(std::string_view u)
+inline std::string_view get_path_from_uri(std::string_view u) noexcept
 {
     auto a = get_authority_from_uri(u);
     auto post_authority = strutil::make_string_view(a.data() + a.length(), u.data() + u.length());
@@ -153,7 +153,7 @@ inline std::string_view get_path_from_uri(std::string_view u)
     return post_authority;
 }
 
-inline std::string_view get_query_from_uri(std::string_view u)
+inline std::string_view get_query_from_uri(std::string_view u) noexcept
 {
     auto pos = u.find_first_of('?');
     if (pos == std::string_view::npos) return {}; // no query
@@ -163,7 +163,7 @@ inline std::string_view get_query_from_uri(std::string_view u)
 
 // Note that the fragment is returned with the hash prefix.
 // Thus one can differentiate between empty but existing fragment or no fragment at all
-inline std::string_view get_fragment_from_uri(std::string_view u)
+inline std::string_view get_fragment_from_uri(std::string_view u) noexcept
 {
     auto pos = u.find_last_of('#');
     if (pos == std::string_view::npos) return {};

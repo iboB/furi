@@ -18,7 +18,7 @@ struct authority_split
     std::string_view port;
 };
 
-authority_split split_authority(std::string_view a)
+authority_split split_authority(std::string_view a) noexcept
 {
     authority_split ret;
 
@@ -68,14 +68,14 @@ authority_split split_authority(std::string_view a)
 
 // individual getters
 
-inline std::string_view get_userinfo_from_authority(std::string_view a)
+inline std::string_view get_userinfo_from_authority(std::string_view a) noexcept
 {
     auto pos = a.find_first_of('@');
     if (pos == std::string_view::npos) return {};
     return a.substr(0, pos);
 }
 
-inline std::string_view get_host_from_authority(std::string_view a)
+inline std::string_view get_host_from_authority(std::string_view a) noexcept
 {
     auto pos = a.find_first_of('@');
     if (pos == std::string_view::npos) pos = 0;
@@ -90,7 +90,7 @@ inline std::string_view get_host_from_authority(std::string_view a)
     return a.substr(0, pos);
 }
 
-inline std::string_view get_port_from_authority(std::string_view a)
+inline std::string_view get_port_from_authority(std::string_view a) noexcept
 {
     auto upos = a.find_first_of('@');
     if (upos == std::string_view::npos) upos = 0;
