@@ -6,10 +6,11 @@
 // https://opensource.org/licenses/MIT
 //
 #pragma once
+#include <string_view>
 
 // some functions copied from
 // https://github.com/iboB/itlib/blob/master/include/itlib/strutil.hpp
-namespace furi::util
+namespace furi::strutil
 {
 
 template <typename CI> // contiguous iterator

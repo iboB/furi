@@ -5,7 +5,7 @@
 // See accompanying file LICENSE.txt or copy at
 // https://opensource.org/licenses/MIT
 //
-#include <furi/uri_view.hpp>
+#include <furi/uri.hpp>
 
 #include <iostream>
 
@@ -14,8 +14,8 @@ using namespace furi;
 
 int main()
 {
-    //uri_view u("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top");
-    uri_view u("foo://xx/bar");
+    uri u("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top");
+    //uri_view u("foo://xx/bar");
 
     cout << u.scheme() << '\n';
     cout << u.authority() << '\n';
