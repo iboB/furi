@@ -29,19 +29,20 @@ public:
     const std::string& str() const noexcept { return m_str; }
     const char* c_str() const noexcept { return m_str.c_str(); }
     size_t length() const noexcept { return m_str.length(); }
+    uri_view uv() const noexcept { return uri_view(sv()); }
 
     // Intentionally not explicit.
     // This conversion is almost free. We want it to happen implicitly
-    operator uri_view() const noexcept { return uri_view(sv()); }
+    operator uri_view() const noexcept { return uv(); }
 
-    std::string_view scheme() const noexcept { return util::get_scheme(m_str); }
-    std::string_view authority() const noexcept { return util::get_authority(m_str); }
-    std::string_view userinfo() const noexcept { return util::get_userinfo(m_str); }
-    std::string_view host() const noexcept { return util::get_host(m_str); }
-    std::string_view port() const noexcept { return util::get_port(m_str); }
-    std::string_view path() const noexcept { return util::get_path(m_str); }
-    std::string_view query() const noexcept { return util::get_query(m_str); }
-    std::string_view fragment() const noexcept { return util::get_fragment(m_str); }
+    std::string_view scheme() const noexcept { return uv().scheme(); }
+    std::string_view authority() const noexcept { return uv().authority(); }
+    std::string_view userinfo() const noexcept { return uv().userinfo(); }
+    std::string_view host() const noexcept { return uv().host(); }
+    std::string_view port() const noexcept { return uv().port(); }
+    std::string_view path() const noexcept { return uv().path(); }
+    std::string_view query() const noexcept { return uv().query(); }
+    std::string_view fragment() const noexcept { return uv().fragment(); }
 };
 
 }

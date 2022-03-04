@@ -18,14 +18,25 @@ int main()
     uri u("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top");
     //uri_view u("foo://xx/bar");
 
+    auto split = util::split_uri(u.sv());
+    auto asplit = util::split_authority(split.authority);
+
     cout << u.scheme() << '\n';
+    cout << split.scheme << '\n';
     cout << u.authority() << '\n';
+    cout << split.authority << '\n';
     cout << u.userinfo() << '\n';
+    cout << asplit.userinfo << '\n';
     cout << u.host() << '\n';
+    cout << asplit.host << '\n';
     cout << u.port() << '\n';
+    cout << asplit.port << '\n';
     cout << u.path() << '\n';
+    cout << split.path << '\n';
     cout << u.query() << '\n';
+    cout << split.query << '\n';
     cout << u.fragment() << '\n';
+    cout << split.fragment << '\n';
 
     return 0;
 }
