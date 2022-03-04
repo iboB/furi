@@ -32,7 +32,7 @@ public:
         r.begin = q.data();
         r.p = q.data();
         r.range_end = q.data() + q.size();
-        --r.begin; // hacky redirect for lack of initial item separator
+        --r.p; // hacky redirect for lack of initial item separator
         r.next();
         return r;
     }
