@@ -42,7 +42,7 @@ authority_split split_authority(std::string_view a)
     {
         auto pos = a.find_first_of(']');
         if (pos == std::string_view::npos) return {}; // invalid uri
-        ret.host = a.substr(1, pos - 1);
+        ret.host = a.substr(0, pos);
         a.remove_prefix(pos);
         if (a.empty()) return ret;
         if (a[0] != ':') return {}; // invalid uri
@@ -89,10 +89,7 @@ inline std::string_view get_host_from_authority(std::string_view a)
     pos = a.find_first_of(']');
     if (pos != std::string_view::npos)
     {
-        // ipv6 encountered
-        a.remove_prefix(1); // remove opening '['
-        if (a.empty()) return {}; // invalid uri
-        return a.substr(0, pos - 1);
+        return a.substr(0, pos);
     }
     pos = a.find_first_of(':');
     return a.substr(0, pos);
