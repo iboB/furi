@@ -8,7 +8,7 @@
 #include <furi/uri.hpp>
 #include <furi/util/split.hpp>
 #include <furi/util/common_query.hpp>
-#include <furi/util/visit_path.hpp>
+#include <furi/path_view.hpp>
 
 #include <iostream>
 
@@ -17,7 +17,7 @@ using namespace furi;
 
 int main()
 {
-    uri u("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top");
+    uri u("https://john.doe@www.example.com:123/forum/questions/aa?tag=networking&order=newest#top");
     //uri_view u("foo://xx/bar");
 
     auto split = util::split_uri(u.sv());
@@ -46,9 +46,11 @@ int main()
     });
 
     cout << "\n\n";
-    util::visit_path(split.path, [](std::string_view p) {
-        cout << "/ " << p << '\n';
-    });
+    path_view path(split.path);
+    for (auto e : path)
+    {
+        cout << "/ " << e << '\n';
+    }
 
     return 0;
 }
