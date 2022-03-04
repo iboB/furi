@@ -8,6 +8,7 @@
 #include <furi/uri.hpp>
 #include <furi/util/split.hpp>
 #include <furi/util/common_query.hpp>
+#include <furi/util/visit_path.hpp>
 
 #include <iostream>
 
@@ -42,6 +43,11 @@ int main()
     cout << "\n\n";
     util::visit_common_query_items(split.query, [](std::string_view k, std::string_view v) {
         cout << k << " : " << v << '\n';
+    });
+
+    cout << "\n\n";
+    util::visit_path(split.path, [](std::string_view p) {
+        cout << "/ " << p << '\n';
     });
 
     return 0;
