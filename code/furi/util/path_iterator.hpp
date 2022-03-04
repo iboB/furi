@@ -22,7 +22,7 @@ public:
         r.begin = path.data();
         r.p = path.data();
         r.range_end = path.data() + path.size();
-        if (path[0] != '/') --r.begin; // hacky redirect for paths which don't begin with /
+        if (path[0] != '/') --r.p; // hacky redirect for paths which don't begin with /
         r.next();
         return r;
     }

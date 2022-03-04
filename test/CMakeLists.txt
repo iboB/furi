@@ -11,5 +11,8 @@ macro(add_furi_test test)
     icm_add_doctest_lib_test(${test} furi ${ARGN})
 endmacro()
 
+# No tests for strutil as it copied from iboB/itlib. It's tested there
+
 add_furi_test(split t-split.cpp)
 add_furi_test(authority_split t-authority_split.cpp)
+add_furi_test(path_iterator t-path_iterator.cpp)
