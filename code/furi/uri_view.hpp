@@ -15,20 +15,22 @@ class uri_view
 {
     std::string_view m_str;
 public:
-    uri_view() = default;
-    explicit uri_view(std::string_view str) : m_str(str) {}
+    uri_view() noexcept = default;
+    explicit uri_view(std::string_view str) noexcept : m_str(str) {}
 
-    bool empty() const { return m_str.empty(); }
-    std::string_view sv() const { return m_str; }
+    bool empty() const noexcept { return m_str.empty(); }
+    std::string_view sv() const noexcept { return m_str; }
+    const char* data() const noexcept { return m_str.data(); }
+    size_t length() const noexcept { return m_str.length(); }
 
-    std::string_view scheme() const { return util::get_scheme(m_str); }
-    std::string_view authority() const { return util::get_authority(m_str); }
-    std::string_view userinfo() const { return util::get_userinfo(m_str); }
-    std::string_view host() const { return util::get_host(m_str); }
-    std::string_view port() const { return util::get_port(m_str); }
-    std::string_view path() const { return util::get_path(m_str); }
-    std::string_view query() const { return util::get_query(m_str); }
-    std::string_view fragment() const { return util::get_fragment(m_str); }
+    std::string_view scheme() const noexcept { return util::get_scheme(m_str); }
+    std::string_view authority() const noexcept { return util::get_authority(m_str); }
+    std::string_view userinfo() const noexcept { return util::get_userinfo(m_str); }
+    std::string_view host() const noexcept { return util::get_host(m_str); }
+    std::string_view port() const noexcept { return util::get_port(m_str); }
+    std::string_view path() const noexcept { return util::get_path(m_str); }
+    std::string_view query() const noexcept { return util::get_query(m_str); }
+    std::string_view fragment() const noexcept { return util::get_fragment(m_str); }
 };
 
 }

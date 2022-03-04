@@ -6,6 +6,7 @@
 // https://opensource.org/licenses/MIT
 //
 #include <furi/uri.hpp>
+#include <furi/util/split.hpp>
 
 #include <iostream>
 
