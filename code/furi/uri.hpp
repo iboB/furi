@@ -25,8 +25,11 @@ public:
     explicit uri(uri_view uv) : m_str(uv.sv()) {}
 
     bool empty() const noexcept { return m_str.empty(); }
-    std::string_view sv() const noexcept { return m_str; }
+
     const std::string& str() const noexcept { return m_str; }
+    std::string& str() noexcept { return m_str; }
+
+    std::string_view sv() const noexcept { return m_str; }
     const char* c_str() const noexcept { return m_str.c_str(); }
     size_t length() const noexcept { return m_str.length(); }
     uri_view uv() const noexcept { return uri_view(sv()); }
