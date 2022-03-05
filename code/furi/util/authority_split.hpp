@@ -18,6 +18,12 @@ struct authority_split
     std::string_view port;
 };
 
+struct userinfo_split
+{
+    std::string_view username;
+    std::string_view password;
+};
+
 authority_split split_authority(std::string_view a) noexcept
 {
     authority_split ret;
@@ -66,6 +72,17 @@ authority_split split_authority(std::string_view a) noexcept
     return ret;
 }
 
+userinfo_split split_userinfo(std::string_view ui) noexcept
+{
+    userinfo_split ret = {ui, {}}; // preemptively set user to entire string
+    auto pos = ui.find_first_of(':');
+    if (pos == std::string_view::npos) return ret;
+
+    ret.username = ui.substr(0, pos);
+    ret.password = ui.substr(pos + 1);
+    return ret;
+}
+
 // individual getters
 
 inline std::string_view get_userinfo_from_authority(std::string_view a) noexcept
@@ -73,6 +90,19 @@ inline std::string_view get_userinfo_from_authority(std::string_view a) noexcept
     auto pos = a.find_first_of('@');
     if (pos == std::string_view::npos) return {};
     return a.substr(0, pos);
+}
+
+inline std::string_view get_username_from_userinfo(std::string_view ui) noexcept
+{
+    auto pos = ui.find_first_of(':');
+    return ui.substr(0, pos);
+}
+
+inline std::string_view get_password_from_userinfo(std::string_view ui) noexcept
+{
+    auto pos = ui.find_first_of(':');
+    if (pos == std::string_view::npos) return {};
+    return ui.substr(pos + 1);
 }
 
 inline std::string_view get_host_from_authority(std::string_view a) noexcept

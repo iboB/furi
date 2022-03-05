@@ -43,6 +43,23 @@ TEST_CASE("authority split ipv6")
     atest("x:y@[::b]:222", {{"x:y"}, {"[::b]"}, {"222"}});
 }
 
+void uitest(std::string_view ui, userinfo_split ex)
+{
+    auto s = split_userinfo(ui);
+    CHECK(ex.username == s.username);
+    CHECK(s.username == get_username_from_userinfo(ui));
+    CHECK(ex.password == s.password);
+    CHECK(s.password == get_password_from_userinfo(ui));
+}
+
+TEST_CASE("userinfo split")
+{
+    uitest("user", {"user", ""});
+    uitest("user:", {"user", ""});
+    uitest("user:pass", {"user", "pass"});
+    uitest(":pass", {"", "pass"});
+}
+
 void no_crash_test(std::string_view a)
 {
     split_authority(a);

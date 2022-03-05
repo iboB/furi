@@ -32,7 +32,7 @@ TEST_CASE("path iterator")
     check("/foo", {"foo"});
     check("foo/", {"foo", ""});
     check("/foo/", {"foo", ""});
-    check("foo/bar/baz", {"foo", "bar", "baz"});
+    check("foo/bar/ba.z", {"foo", "bar", "ba.z"});
     check("/foo/bar/baz", {"foo", "bar", "baz"});
     check("/foo/bar/baz/", {"foo", "bar", "baz", ""});
     check("foo/bar/baz/", {"foo", "bar", "baz", ""});
