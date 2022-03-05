@@ -27,20 +27,20 @@ void atest(std::string_view a, const authority_split ex)
 TEST_CASE("authority split")
 {
     atest("", {});
-    atest("xxx", {{}, {"xxx"}, {}});
-    atest("alice@abc", {{"alice"}, {"abc"}, {}});
-    atest("bob:pass@123.33", {{"bob:pass"}, {"123.33"}, {}});
-    atest("foo.com:34", {{}, {"foo.com"}, {"34"}});
-    atest("alice:pass@foo.com:44", {{"alice:pass"}, {"foo.com"}, {"44"}});
+    atest("xxx", {"", "xxx", ""});
+    atest("alice@abc", {"alice", "abc", ""});
+    atest("bob:pass@123.33", {"bob:pass", "123.33", ""});
+    atest("foo.com:34", {"", "foo.com", "34"});
+    atest("alice:pass@foo.com:44", {"alice:pass", "foo.com", "44"});
 }
 
 TEST_CASE("authority split ipv6")
 {
-    atest("[::1]", {{}, {"[::1]"}, {}});
-    atest("bob:pass@[2001:db8::ff00:42:8329]", {{"bob:pass"}, {"[2001:db8::ff00:42:8329]"}, {}});
-    atest("[::ff]:222", {{}, {"[::ff]"}, {"222"}});
-    atest("x@[::2]:5", {{"x"}, {"[::2]"}, {"5"}});
-    atest("x:y@[::b]:222", {{"x:y"}, {"[::b]"}, {"222"}});
+    atest("[::1]", {"", "[::1]", ""});
+    atest("bob:pass@[2001:db8::ff00:42:8329]", {"bob:pass", "[2001:db8::ff00:42:8329]", ""});
+    atest("[::ff]:222", {"", "[::ff]", "222"});
+    atest("x@[::2]:5", {"x", "[::2]", "5"});
+    atest("x:y@[::b]:222", {"x:y", "[::b]", "222"});
 }
 
 void uitest(std::string_view ui, userinfo_split ex)
