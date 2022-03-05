@@ -39,9 +39,9 @@ TEST_CASE("split")
     stest("a-b://asdf", {{"a-b"}, {"asdf"}, {}, {}, {}});
     stest("a-b://asdf/", {{"a-b"}, {"asdf"}, {"/"}, {}, {}});
     stest("sys:x/y/z?q=4&qq=m", {{"sys"}, {}, {"x/y/z"}, {"q=4&qq=m"}, {}});
-    stest("sys:x/y/z?zz#", {{"sys"}, {}, {"x/y/z"}, {"zz"}, {"#"}});
+    stest("sys:x/y/z?zz#", {{"sys"}, {}, {"x/y/z"}, {"zz"}, {}});
     stest("mailto:g@gg.com", {{"mailto"}, {}, {"g@gg.com"}, {}, {}});
-    stest("http://x.com:43/abc?xyz#top", {{"http"}, {"x.com:43"}, {"/abc"}, {"xyz"}, {"#top"}});
+    stest("http://x.com:43/abc?xyz#top", {{"http"}, {"x.com:43"}, {"/abc"}, {"xyz"}, {"top"}});
     stest("https://[2001:db8::ff00:42:8329]:43/xxx", {{"https"}, {"[2001:db8::ff00:42:8329]:43"}, {"/xxx"}, {}, {}});
     stest("file:///home/user/f.txt", {{"file"}, {}, {"/home/user/f.txt"}, {}, {}});
     stest("file://localhost/home/user/f.txt", {{"file"}, {"localhost"}, {"/home/user/f.txt"}, {}, {}});

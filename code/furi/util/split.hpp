@@ -90,7 +90,7 @@ inline split split_uri(std::string_view u) noexcept
             // found a fragment
             // at this point this definitely means that there is no query
             ret.path = strutil::make_string_view(u.begin(), p); // update path
-            ret.fragment = strutil::make_string_view(p, u.end());
+            ret.fragment = strutil::make_string_view(p + 1, u.end());
             return ret; // nothing more to search
         }
     }
@@ -102,7 +102,7 @@ inline split split_uri(std::string_view u) noexcept
         if (*p == '#')
         {
             ret.query = strutil::make_string_view(u.begin(), p); // update query
-            ret.fragment = strutil::make_string_view(p, u.end());
+            ret.fragment = strutil::make_string_view(p + 1, u.end());
             break;
         }
     }
@@ -161,13 +161,11 @@ inline std::string_view get_query_from_uri(std::string_view u) noexcept
     return post_path.substr(0, post_path.find_first_of('#'));
 }
 
-// Note that the fragment is returned with the hash prefix.
-// Thus one can differentiate between empty but existing fragment or no fragment at all
 inline std::string_view get_fragment_from_uri(std::string_view u) noexcept
 {
     auto pos = u.find_last_of('#');
     if (pos == std::string_view::npos) return {};
-    return u.substr(pos);
+    return u.substr(pos + 1);
 }
 
 }
