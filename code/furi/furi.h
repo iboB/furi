@@ -18,46 +18,46 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////
 // string view
-typedef struct furi_string_view
+typedef struct furi_sv
 {
     const char* begin; // start of string
     const char* end; // one after the last character of the string
-} furi_string_view;
+} furi_sv;
 
-inline furi_string_view furi_make_string_view(const char* begin, const char* end)
+inline furi_sv furi_make_sv(const char* begin, const char* end)
 {
-    furi_string_view ret = {begin, end};
+    furi_sv ret = {begin, end};
     return ret;
 }
 
-inline furi_string_view furi_string_view_from_string(const char* str)
+inline furi_sv furi_sv_from_string(const char* str)
 {
-    if (!str) return (furi_string_view)FURI_EMPTY_VAL;
-    return furi_make_string_view(str, str + strlen(str));
+    if (!str) return (furi_sv)FURI_EMPTY_VAL;
+    return furi_make_sv(str, str + strlen(str));
 }
 
-inline bool furi_string_view_is_null(furi_string_view sv)
+inline bool furi_sv_is_null(furi_sv sv)
 {
     return !sv.begin;
 }
 
-inline size_t furi_string_view_length(furi_string_view sv)
+inline size_t furi_sv_length(furi_sv sv)
 {
     return sv.end - sv.begin;
 }
 
-inline bool furi_string_view_is_empty(furi_string_view sv)
+inline bool furi_sv_is_empty(furi_sv sv)
 {
     return sv.begin == sv.end;
 }
 
-inline int furi_string_view_cmp(furi_string_view a, furi_string_view b)
+inline int furi_sv_cmp(furi_sv a, furi_sv b)
 {
     // avoid memcmp with null
     if (a.begin == b.begin) return 0;
-    size_t alen = furi_string_view_length(a);
+    size_t alen = furi_sv_length(a);
     if (!b.begin) return !!alen;
-    size_t blen = furi_string_view_length(b);
+    size_t blen = furi_sv_length(b);
     if (!a.begin) return -!!blen;
 
     if (alen == blen)
@@ -77,25 +77,25 @@ inline int furi_string_view_cmp(furi_string_view a, furi_string_view b)
 }
 
 
-inline bool furi_string_view_starts_with(furi_string_view sv, const char* prefix)
+inline bool furi_sv_starts_with(furi_sv sv, const char* prefix)
 {
-    size_t svlen = furi_string_view_length(sv);
+    size_t svlen = furi_sv_length(sv);
     size_t plen = strlen(prefix);
     if (plen > svlen) return false; // prefix longer than string
     if (svlen == 0 && plen == 0) return true; // avoid memcmp with null
     return memcmp(sv.begin, prefix, plen) == 0;
 }
 
-inline const char* furi_string_view_find_first(furi_string_view sv, char q)
+inline const char* furi_sv_find_first(furi_sv sv, char q)
 {
-    size_t len = furi_string_view_length(sv);
+    size_t len = furi_sv_length(sv);
     if (!len) return NULL; // avoid memchr with null
     return (const char*)memchr(sv.begin, q, len);
 }
 
-inline const char* furi_string_view_find_last(furi_string_view sv, char q)
+inline const char* furi_sv_find_last(furi_sv sv, char q)
 {
-    size_t len = furi_string_view_length(sv);
+    size_t len = furi_sv_length(sv);
 
 #if defined(_MSC_VER)
     while (len--)
@@ -114,14 +114,14 @@ inline const char* furi_string_view_find_last(furi_string_view sv, char q)
 
 typedef struct furi_uri_split
 {
-    furi_string_view scheme;
-    furi_string_view authority;
-    furi_string_view path;
-    furi_string_view query;
-    furi_string_view fragment;
+    furi_sv scheme;
+    furi_sv authority;
+    furi_sv path;
+    furi_sv query;
+    furi_sv fragment;
 } furi_uri_split;
 
-inline furi_uri_split furi_split_uri(furi_string_view u)
+inline furi_uri_split furi_split_uri(furi_sv u)
 {
     furi_uri_split ret = FURI_EMPTY_VAL;
 
@@ -131,16 +131,16 @@ inline furi_uri_split furi_split_uri(furi_string_view u)
         if (*p == ':')
         {
             // found scheme
-            ret.scheme = furi_make_string_view(u.begin, p);
-            u = furi_make_string_view(p + 1, u.end); // slice scheme off
+            ret.scheme = furi_make_sv(u.begin, p);
+            u = furi_make_sv(p + 1, u.end); // slice scheme off
 
             // since we have a scheme, we can also search for authority
             // note with no scheme, there is no possibility to have authority
-            if (furi_string_view_starts_with(u, "//"))
+            if (furi_sv_starts_with(u, "//"))
             {
                 // authority found
                 u.begin += 2; // slice prefix off
-                const char* f = furi_string_view_find_first(u, '/'); // skip till end of authority
+                const char* f = furi_sv_find_first(u, '/'); // skip till end of authority
                 if (!f)
                 {
                     // nothing more than authroity
@@ -148,7 +148,7 @@ inline furi_uri_split furi_split_uri(furi_string_view u)
                     return ret;
                 }
 
-                ret.authority = furi_make_string_view(u.begin, f);
+                ret.authority = furi_make_sv(u.begin, f);
                 u.begin = f; // slice authority off
             }
 
@@ -176,7 +176,7 @@ inline furi_uri_split furi_split_uri(furi_string_view u)
         if (*p == '?')
         {
             // found a query
-            ret.path = furi_make_string_view(u.begin, p); // update path
+            ret.path = furi_make_sv(u.begin, p); // update path
             u.begin = p + 1; // slice path off
             ret.query = u; // preemptively set query to rest
             break;
@@ -185,8 +185,8 @@ inline furi_uri_split furi_split_uri(furi_string_view u)
         {
             // found a fragment
             // at this point this definitely means that there is no query
-            ret.path = furi_make_string_view(u.begin, p); // update path
-            ret.fragment = furi_make_string_view(p + 1, u.end);
+            ret.path = furi_make_sv(u.begin, p); // update path
+            ret.fragment = furi_make_sv(p + 1, u.end);
             return ret; // nothing more to search
         }
     }
@@ -197,8 +197,8 @@ inline furi_uri_split furi_split_uri(furi_string_view u)
     {
         if (*p == '#')
         {
-            ret.query = furi_make_string_view(u.begin, p); // update query
-            ret.fragment = furi_make_string_view(p + 1, u.end);
+            ret.query = furi_make_sv(u.begin, p); // update query
+            ret.fragment = furi_make_sv(p + 1, u.end);
             break;
         }
     }
@@ -208,41 +208,41 @@ inline furi_uri_split furi_split_uri(furi_string_view u)
 
 // indivitual getters
 
-inline furi_string_view furi_get_scheme_from_uri(furi_string_view u)
+inline furi_sv furi_get_scheme_from_uri(furi_sv u)
 {
     for (const char* p = u.begin; p != u.end; ++p)
     {
-        if (*p == ':') return furi_make_string_view(u.begin, p);
-        if (*p == '/') return (furi_string_view)FURI_EMPTY_VAL; // encounter path separator => no scheme (no point in searching more)
+        if (*p == ':') return furi_make_sv(u.begin, p);
+        if (*p == '/') return (furi_sv)FURI_EMPTY_VAL; // encounter path separator => no scheme (no point in searching more)
     }
-    return (furi_string_view)FURI_EMPTY_VAL;
+    return (furi_sv)FURI_EMPTY_VAL;
 }
 
-inline furi_string_view furi_get_authority_from_uri(furi_string_view u)
+inline furi_sv furi_get_authority_from_uri(furi_sv u)
 {
-    furi_string_view s = furi_get_scheme_from_uri(u);
-    if (!furi_string_view_is_null(s))
+    furi_sv s = furi_get_scheme_from_uri(u);
+    if (!furi_sv_is_null(s))
     {
         u.begin = s.end + 1; // slice off scheme
     }
 
-    if (!furi_string_view_starts_with(u, "//"))
+    if (!furi_sv_starts_with(u, "//"))
     {
-        return (furi_string_view)FURI_EMPTY_VAL;
+        return (furi_sv)FURI_EMPTY_VAL;
     }
 
     u.begin += 2; // slice off prefix
     for (const char* p = u.begin; p != u.end; ++p)
     {
-        if (*p == '/') return furi_make_string_view(u.begin, p);
+        if (*p == '/') return furi_make_sv(u.begin, p);
     }
     return u; // uri has authority and nothing else
 }
 
-inline furi_string_view furi_get_path_from_uri(furi_string_view u)
+inline furi_sv furi_get_path_from_uri(furi_sv u)
 {
-    furi_string_view s = furi_get_scheme_from_uri(u);
-    furi_string_view a = furi_get_authority_from_uri(u);
+    furi_sv s = furi_get_scheme_from_uri(u);
+    furi_sv a = furi_get_authority_from_uri(u);
 
     if (s.begin != a.begin)
     {
@@ -255,26 +255,26 @@ inline furi_string_view furi_get_path_from_uri(furi_string_view u)
 
     for (const char* p = u.begin; p != u.end; ++p)
     {
-        if (*p == '?' || *p == '#') return furi_make_string_view(u.begin, p);
+        if (*p == '?' || *p == '#') return furi_make_sv(u.begin, p);
     }
 
     return u;
 }
 
-inline furi_string_view furi_get_query_from_uri(furi_string_view u)
+inline furi_sv furi_get_query_from_uri(furi_sv u)
 {
-    const char* p = furi_string_view_find_first(u, '?');
-    if (!p) return (furi_string_view)FURI_EMPTY_VAL; // no query
+    const char* p = furi_sv_find_first(u, '?');
+    if (!p) return (furi_sv)FURI_EMPTY_VAL; // no query
     u.begin = p + 1;
-    p = furi_string_view_find_first(u, '#');
+    p = furi_sv_find_first(u, '#');
     if (p) u.end = p;
     return u;
 }
 
-inline furi_string_view furi_get_fragment_from_uri(furi_string_view u)
+inline furi_sv furi_get_fragment_from_uri(furi_sv u)
 {
-    const char* p = furi_string_view_find_last(u, '#');
-    if (!p) return (furi_string_view)FURI_EMPTY_VAL;
+    const char* p = furi_sv_find_last(u, '#');
+    if (!p) return (furi_sv)FURI_EMPTY_VAL;
     u.begin = p + 1;
     return u;
 }
@@ -284,19 +284,19 @@ inline furi_string_view furi_get_fragment_from_uri(furi_string_view u)
 
 typedef struct furi_authority_split
 {
-    furi_string_view userinfo;
-    furi_string_view host;
-    furi_string_view port;
+    furi_sv userinfo;
+    furi_sv host;
+    furi_sv port;
 } furi_authority_split;
 
-inline furi_authority_split furi_split_authority(furi_string_view a)
+inline furi_authority_split furi_split_authority(furi_sv a)
 {
     furi_authority_split ret = FURI_EMPTY_VAL;
 
-    const char* f = furi_string_view_find_first(a, '@');
+    const char* f = furi_sv_find_first(a, '@');
     if (f)
     {
-        ret.userinfo = furi_make_string_view(a.begin, f);
+        ret.userinfo = furi_make_sv(a.begin, f);
         a.begin = f + 1; // slice userinfo off
     }
 
@@ -304,19 +304,19 @@ inline furi_authority_split furi_split_authority(furi_string_view a)
     // will update if needed
     ret.host = a;
 
-    if (furi_string_view_is_empty(a)) return ret; // empty host
+    if (furi_sv_is_empty(a)) return ret; // empty host
 
     // check for ipv6
     if (a.begin[0] == '[')
     {
-        const char* bf = furi_string_view_find_first(a, ']');
+        const char* bf = furi_sv_find_first(a, ']');
         if (!bf) return (furi_authority_split)FURI_EMPTY_VAL; // invalid uri
         ++bf; // include the ']'
         ret.host.end = bf;
         a.begin = bf; // slice off
-        if (furi_string_view_is_empty(a)) return ret; // valid. no port
+        if (furi_sv_is_empty(a)) return ret; // valid. no port
         if (a.begin[0] != ':') return (furi_authority_split)FURI_EMPTY_VAL; // invalid uri
-        ret.port = furi_make_string_view(a.begin + 1, a.end);
+        ret.port = furi_make_sv(a.begin + 1, a.end);
         return ret;
     }
 
@@ -328,8 +328,8 @@ inline furi_authority_split furi_split_authority(furi_string_view a)
         if (*p == ':')
         {
             // found port
-            ret.host = furi_make_string_view(a.begin, p);
-            ret.port = furi_make_string_view(p + 1, a.end);
+            ret.host = furi_make_sv(a.begin, p);
+            ret.port = furi_make_sv(p + 1, a.end);
             break;
         }
     }
@@ -339,37 +339,37 @@ inline furi_authority_split furi_split_authority(furi_string_view a)
 
 // individual getters
 
-inline furi_string_view furi_get_userinfo_from_authority(furi_string_view a)
+inline furi_sv furi_get_userinfo_from_authority(furi_sv a)
 {
-    const char* p = furi_string_view_find_first(a, '@');
-    if (!p) return (furi_string_view)FURI_EMPTY_VAL;
+    const char* p = furi_sv_find_first(a, '@');
+    if (!p) return (furi_sv)FURI_EMPTY_VAL;
     a.end = p;
     return a;
 }
 
-inline furi_string_view furi_get_host_from_authority(furi_string_view a)
+inline furi_sv furi_get_host_from_authority(furi_sv a)
 {
-    const char* p = furi_string_view_find_first(a, '@');
+    const char* p = furi_sv_find_first(a, '@');
     if (p) a.begin = p + 1; // cut the @ symbol as well
-    p = furi_string_view_find_first(a, ']');; // ipv6 check
+    p = furi_sv_find_first(a, ']');; // ipv6 check
     if (p)
     {
         a.end = p + 1;
         return a;
     }
-    p = furi_string_view_find_first(a, ':');
+    p = furi_sv_find_first(a, ':');
     if (p) a.end = p;
     return a;
 }
 
-inline furi_string_view furi_get_port_from_authority(furi_string_view a)
+inline furi_sv furi_get_port_from_authority(furi_sv a)
 {
-    const char* p = furi_string_view_find_first(a, '@');
+    const char* p = furi_sv_find_first(a, '@');
     if (p) a.begin = p + 1;
-    p = furi_string_view_find_first(a, ']');
+    p = furi_sv_find_first(a, ']');
     if (p) a.begin = p + 1;
-    p = furi_string_view_find_first(a, ':');
-    if (!p) return (furi_string_view)FURI_EMPTY_VAL;
+    p = furi_sv_find_first(a, ':');
+    if (!p) return (furi_sv)FURI_EMPTY_VAL;
     a.begin = p + 1;
     return a;
 }
@@ -379,33 +379,33 @@ inline furi_string_view furi_get_port_from_authority(furi_string_view a)
 
 typedef struct furi_userinfo_split
 {
-    furi_string_view username;
-    furi_string_view password;
+    furi_sv username;
+    furi_sv password;
 } furi_userinfo_split;
 
-furi_userinfo_split furi_split_userinfo(furi_string_view ui)
+furi_userinfo_split furi_split_userinfo(furi_sv ui)
 {
     furi_userinfo_split ret = {ui, FURI_EMPTY_VAL}; // preemptively set user to entire string
-    const char* p = furi_string_view_find_first(ui, ':');
+    const char* p = furi_sv_find_first(ui, ':');
     if (!p) return ret;
 
     ret.username.end = p;
-    ret.password = furi_make_string_view(p + 1, ui.end);
+    ret.password = furi_make_sv(p + 1, ui.end);
     return ret;
 }
 
-inline furi_string_view furi_get_username_from_userinfo(furi_string_view ui)
+inline furi_sv furi_get_username_from_userinfo(furi_sv ui)
 {
-    const char* p = furi_string_view_find_first(ui, ':');
+    const char* p = furi_sv_find_first(ui, ':');
     if (!p) return ui;
     ui.end = p;
     return ui;
 }
 
-inline furi_string_view furi_get_password_from_userinfo(furi_string_view ui)
+inline furi_sv furi_get_password_from_userinfo(furi_sv ui)
 {
-    const char* p = furi_string_view_find_first(ui, ':');
-    if (!p) return (furi_string_view)FURI_EMPTY_VAL;
+    const char* p = furi_sv_find_first(ui, ':');
+    if (!p) return (furi_sv)FURI_EMPTY_VAL;
     ui.begin = p + 1;
     return ui;
 }
