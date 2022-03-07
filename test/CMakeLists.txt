@@ -27,7 +27,7 @@ endmacro()
 
 # No tests for strutil as it copied from iboB/itlib. It's tested there
 
-add_furi_c_test(c_string_view_c t-c_string_view.c)
+add_furi_c_test(c_core t-furi.c)
 
 add_furi_test(split t-split.cpp)
 add_furi_test(authority_split t-authority_split.cpp)
