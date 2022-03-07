@@ -46,6 +46,11 @@ inline size_t furi_string_view_length(furi_string_view sv)
     return sv.end - sv.begin;
 }
 
+inline bool furi_string_view_is_empty(furi_string_view sv)
+{
+    return sv.begin == sv.end;
+}
+
 inline int furi_string_view_cmp(furi_string_view a, furi_string_view b)
 {
     // avoid memcmp with null
@@ -203,7 +208,7 @@ inline furi_uri_split furi_split_uri(furi_string_view u)
 
 // indivitual getters
 
-inline furi_string_view get_scheme_from_uri(furi_string_view u)
+inline furi_string_view furi_get_scheme_from_uri(furi_string_view u)
 {
     for (const char* p = u.begin; p != u.end; ++p)
     {
@@ -213,12 +218,12 @@ inline furi_string_view get_scheme_from_uri(furi_string_view u)
     return (furi_string_view)FURI_EMPTY_VAL;
 }
 
-inline furi_string_view get_authority_from_uri(furi_string_view u)
+inline furi_string_view furi_get_authority_from_uri(furi_string_view u)
 {
-    furi_string_view s = get_scheme_from_uri(u);
+    furi_string_view s = furi_get_scheme_from_uri(u);
     if (!furi_string_view_is_null(s))
     {
-        u.begin += furi_string_view_length(s) + 1; // slice off scheme
+        u.begin = s.end + 1; // slice off scheme
     }
 
     if (!furi_string_view_starts_with(u, "//"))
@@ -234,10 +239,10 @@ inline furi_string_view get_authority_from_uri(furi_string_view u)
     return u; // uri has authority and nothing else
 }
 
-inline furi_string_view get_path_from_uri(furi_string_view u)
+inline furi_string_view furi_get_path_from_uri(furi_string_view u)
 {
-    furi_string_view s = get_scheme_from_uri(u);
-    furi_string_view a = get_authority_from_uri(u);
+    furi_string_view s = furi_get_scheme_from_uri(u);
+    furi_string_view a = furi_get_authority_from_uri(u);
 
     if (s.begin != a.begin)
     {
@@ -256,7 +261,7 @@ inline furi_string_view get_path_from_uri(furi_string_view u)
     return u;
 }
 
-inline furi_string_view get_query_from_uri(furi_string_view u)
+inline furi_string_view furi_get_query_from_uri(furi_string_view u)
 {
     const char* p = furi_string_view_find_first(u, '?');
     if (!p) return (furi_string_view)FURI_EMPTY_VAL; // no query
@@ -266,13 +271,109 @@ inline furi_string_view get_query_from_uri(furi_string_view u)
     return u;
 }
 
-inline furi_string_view get_fragment_from_uri(furi_string_view u)
+inline furi_string_view furi_get_fragment_from_uri(furi_string_view u)
 {
     const char* p = furi_string_view_find_last(u, '#');
     if (!p) return (furi_string_view)FURI_EMPTY_VAL;
     u.begin = p + 1;
     return u;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// authority split
+
+typedef struct furi_authority_split
+{
+    furi_string_view userinfo;
+    furi_string_view host;
+    furi_string_view port;
+} furi_authority_split;
+
+inline furi_authority_split furi_split_authority(furi_string_view a)
+{
+    furi_authority_split ret = FURI_EMPTY_VAL;
+
+    const char* f = furi_string_view_find_first(a, '@');
+    if (f)
+    {
+        ret.userinfo = furi_make_string_view(a.begin, f);
+        a.begin = f + 1; // slice userinfo off
+    }
+
+    // premptively set host
+    // will update if needed
+    ret.host = a;
+
+    if (furi_string_view_is_empty(a)) return ret; // empty host
+
+    // check for ipv6
+    if (a.begin[0] == '[')
+    {
+        const char* bf = furi_string_view_find_first(a, ']');
+        if (!bf) return (furi_authority_split)FURI_EMPTY_VAL; // invalid uri
+        ++bf; // include the ']'
+        ret.host.end = bf;
+        a.begin = bf; // slice off
+        if (furi_string_view_is_empty(a)) return ret; // valid. no port
+        if (a.begin[0] != ':') return (furi_authority_split)FURI_EMPTY_VAL; // invalid uri
+        ret.port = furi_make_string_view(a.begin + 1, a.end);
+        return ret;
+    }
+
+    // no ipv6
+    // continue looking for port
+
+    for (const char* p = a.begin; p != a.end; ++p)
+    {
+        if (*p == ':')
+        {
+            // found port
+            ret.host = furi_make_string_view(a.begin, p);
+            ret.port = furi_make_string_view(p + 1, a.end);
+            break;
+        }
+    }
+
+    return ret;
+}
+
+// individual getters
+
+inline furi_string_view furi_get_userinfo_from_authority(furi_string_view a)
+{
+    const char* p = furi_string_view_find_first(a, '@');
+    if (!p) return (furi_string_view)FURI_EMPTY_VAL;
+    a.end = p;
+    return a;
+}
+
+inline furi_string_view furi_get_host_from_authority(furi_string_view a)
+{
+    const char* p = furi_string_view_find_first(a, '@');
+    if (p) a.begin = p + 1; // cut the @ symbol as well
+    p = furi_string_view_find_first(a, ']');; // ipv6 check
+    if (p)
+    {
+        a.end = p + 1;
+        return a;
+    }
+    p = furi_string_view_find_first(a, ':');
+    if (p) a.end = p;
+    return a;
+}
+
+inline furi_string_view furi_get_port_from_authority(furi_string_view a)
+{
+    const char* p = furi_string_view_find_first(a, '@');
+    if (p) a.begin = p + 1;
+    p = furi_string_view_find_first(a, ']');
+    if (p) a.begin = p + 1;
+    p = furi_string_view_find_first(a, ':');
+    if (!p) return (furi_string_view)FURI_EMPTY_VAL;
+    a.begin = p + 1;
+    return a;
+}
+
 
 #if defined(__cplusplus)
 } // extern "C"
