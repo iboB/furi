@@ -8,6 +8,7 @@
 #pragma once
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #if defined(__cplusplus)
 #define FURI_EMPTY_VAL {}
@@ -30,7 +31,7 @@ inline furi_sv furi_make_sv(const char* begin, const char* end)
     return ret;
 }
 
-inline furi_sv furi_sv_from_string(const char* str)
+inline furi_sv furi_make_sv_from_string(const char* str)
 {
     if (!str) return (furi_sv)FURI_EMPTY_VAL;
     return furi_make_sv(str, str + strlen(str));
@@ -408,6 +409,60 @@ inline furi_sv furi_get_password_from_userinfo(furi_sv ui)
     if (!p) return (furi_sv)FURI_EMPTY_VAL;
     ui.begin = p + 1;
     return ui;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// path iterator
+typedef struct furi_path_iter
+{
+    const char* begin;
+    const char* p;
+    const char* range_end;
+} furi_path_iter;
+
+inline furi_path_iter furi_make_path_iter_end(const furi_sv path)
+{
+    return (furi_path_iter){path.end, path.end, path.end};
+}
+
+inline void furi_path_iter_next(furi_path_iter* pi)
+{
+    pi->begin = pi->p;
+    ++pi->p; // overflow to skip last separator
+
+    for (; pi->p < pi->range_end; ++pi->p)
+    {
+        if (*pi->p == '/') break;
+    }
+}
+
+inline furi_path_iter furi_make_path_iter_begin(const furi_sv path)
+{
+    if (furi_sv_is_empty(path)) return furi_make_path_iter_end(path);
+    furi_path_iter r = {path.begin, path.begin, path.end};
+    if (path.begin[0] != '/') --r.p; // hacky redirect for paths which don't begin with /
+    furi_path_iter_next(&r);
+    return r;
+}
+
+inline bool furi_path_iter_is_done(const furi_path_iter pi)
+{
+    return pi.begin == pi.range_end;
+}
+
+inline furi_sv furi_path_iter_get_value(const furi_path_iter pi)
+{
+    assert(pi.p <= pi.range_end); // out-of bounds check
+
+    // at this point begin points to one before the actual item
+    return furi_make_sv(pi.begin + 1, pi.p);
+}
+
+inline int furi_path_iter_cmp(const furi_path_iter a, const furi_path_iter b)
+{
+    if (a.begin == b.begin) return 0;
+    if (a.begin < b.begin) return -1;
+    return 1;
 }
 
 #if defined(__cplusplus)

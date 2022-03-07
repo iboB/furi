@@ -6,7 +6,7 @@ void setUp(void) {}
 void tearDown(void) {}
 
 #define TEST_ASSERT_SV_EQUAL(a, b) TEST_ASSERT(furi_sv_cmp(a, b) == 0)
-#define TEST_ASSERT_EXPECT_SV(expected, sv) TEST_ASSERT_SV_EQUAL(furi_sv_from_string(expected), sv)
+#define TEST_ASSERT_EXPECT_SV(expected, sv) TEST_ASSERT_SV_EQUAL(furi_make_sv_from_string(expected), sv)
 
 void sv(void)
 {
@@ -22,7 +22,7 @@ void sv(void)
     TEST_ASSERT_NULL(furi_sv_find_first(e, 'x'));
     TEST_ASSERT_NULL(furi_sv_find_last(e, 'x'));
 
-    furi_sv e2 = furi_sv_from_string("");
+    furi_sv e2 = furi_make_sv_from_string("");
     TEST_ASSERT_NOT_NULL(e2.begin);
     TEST_ASSERT_NOT_NULL(e2.end);
     TEST_ASSERT_FALSE(furi_sv_is_null(e2));
@@ -37,7 +37,7 @@ void sv(void)
     TEST_ASSERT_NULL(furi_sv_find_last(e2, 'x'));
 
     {
-        furi_sv abc = furi_sv_from_string("abc");
+        furi_sv abc = furi_make_sv_from_string("abc");
         TEST_ASSERT_NOT_NULL(abc.begin);
         TEST_ASSERT_NOT_NULL(abc.end);
         TEST_ASSERT_FALSE(furi_sv_is_null(abc));
@@ -64,7 +64,7 @@ void sv(void)
     }
 
     {
-        furi_sv foof = furi_sv_from_string("foof");
+        furi_sv foof = furi_make_sv_from_string("foof");
         TEST_ASSERT_NULL(furi_sv_find_first(foof, 'x'));
         const char* p = furi_sv_find_first(foof, 'o');
         TEST_ASSERT_NOT_NULL(p);
@@ -85,7 +85,7 @@ void test_uri_split(const char* struri,
     const char* query,
     const char* fragment)
 {
-    furi_sv uri = furi_sv_from_string(struri);
+    furi_sv uri = furi_make_sv_from_string(struri);
     furi_uri_split s = furi_split_uri(uri);
     TEST_ASSERT_EXPECT_SV(scheme, s.scheme);
     TEST_ASSERT(!scheme == !s.scheme.begin);
@@ -109,7 +109,7 @@ void no_crash_uri_split_test(const char* struri)
     // test invalid splits
     // we don't care about the particular results here
     // we only care that these don't crash or cause sanitizer issues problems
-    furi_sv uri = furi_sv_from_string(struri);
+    furi_sv uri = furi_make_sv_from_string(struri);
     furi_split_uri(uri);
     furi_get_scheme_from_uri(uri);
     furi_get_authority_from_uri(uri);
@@ -149,7 +149,7 @@ void test_authority_split(const char* strauthority,
     const char* host,
     const char* port)
 {
-    furi_sv a = furi_sv_from_string(strauthority);
+    furi_sv a = furi_make_sv_from_string(strauthority);
     furi_authority_split s = furi_split_authority(a);
     TEST_ASSERT_EXPECT_SV(userinfo, s.userinfo);
     TEST_ASSERT(!userinfo == !s.userinfo.begin);
@@ -164,7 +164,7 @@ void test_authority_split(const char* strauthority,
 
 void no_crash_authority_split_test(const char* strauthority)
 {
-    furi_sv a = furi_sv_from_string(strauthority);
+    furi_sv a = furi_make_sv_from_string(strauthority);
     furi_split_authority(a);
     furi_get_userinfo_from_authority(a);
     furi_get_host_from_authority(a);
@@ -199,7 +199,7 @@ void authority_split(void)
 
 void test_userinfo_split(const char* strui, const char* username, const char* password)
 {
-    furi_sv ui = furi_sv_from_string(strui);
+    furi_sv ui = furi_make_sv_from_string(strui);
     furi_userinfo_split s = furi_split_userinfo(ui);
     TEST_ASSERT_EXPECT_SV(username, s.username);
     TEST_ASSERT(!username == !s.username.begin);
@@ -217,6 +217,37 @@ void useinfo_split(void)
     test_userinfo_split(":pass", "", "pass");
 }
 
+void test_path_iter(const char* strpath, const char* const* elems, size_t num_elems)
+{
+    furi_sv path = furi_make_sv_from_string(strpath);
+    size_t ei = 0;
+    for (furi_path_iter iter = furi_make_path_iter_begin(path); !furi_path_iter_is_done(iter); furi_path_iter_next(&iter), ++ei)
+    {
+        TEST_ASSERT_LESS_THAN_size_t(num_elems, ei);
+        TEST_ASSERT_EXPECT_SV(elems[ei], furi_path_iter_get_value(iter));
+    }
+    TEST_ASSERT_EQUAL_size_t(num_elems, ei);
+}
+
+#define PATH_ITER_CHECK(str, ...) { \
+    const char* elems[] = __VA_ARGS__; \
+    size_t num_elems = sizeof(elems) / sizeof(const char*); \
+    test_path_iter(str, elems, num_elems); \
+}
+
+void path_iter(void)
+{
+    test_path_iter("", NULL, 0);
+    PATH_ITER_CHECK("foo", {"foo"});
+    PATH_ITER_CHECK("/foo", {"foo"});
+    PATH_ITER_CHECK("foo/", {"foo", ""});
+    PATH_ITER_CHECK("/foo/", {"foo", ""});
+    PATH_ITER_CHECK("foo/bar/ba.z", {"foo", "bar", "ba.z"});
+    PATH_ITER_CHECK("/foo/bar/baz", {"foo", "bar", "baz"});
+    PATH_ITER_CHECK("/foo/bar/baz/", {"foo", "bar", "baz", ""});
+    PATH_ITER_CHECK("foo/bar/baz/", {"foo", "bar", "baz", ""});
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -224,5 +255,6 @@ int main(void)
     RUN_TEST(uri_split);
     RUN_TEST(authority_split);
     RUN_TEST(useinfo_split);
+    RUN_TEST(path_iter);
     return UNITY_END();
 }
