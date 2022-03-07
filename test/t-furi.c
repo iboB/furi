@@ -104,6 +104,20 @@ void test_uri_split(const char* struri,
     TEST_ASSERT_SV_EQUAL(s.fragment, furi_get_fragment_from_uri(uri));
 }
 
+void no_crash_uri_split_test(const char* struri)
+{
+    // test invalid splits
+    // we don't care about the particular results here
+    // we only care that these don't crash or cause sanitizer issues problems
+    furi_string_view uri = furi_string_view_from_string(struri);
+    furi_split_uri(uri);
+    furi_get_scheme_from_uri(uri);
+    furi_get_authority_from_uri(uri);
+    furi_get_path_from_uri(uri);
+    furi_get_query_from_uri(uri);
+    furi_get_fragment_from_uri(uri);
+}
+
 void uri_split(void)
 {
     test_uri_split("", NULL, NULL, "", NULL, NULL);
@@ -121,24 +135,7 @@ void uri_split(void)
     test_uri_split("https://[2001:db8::ff00:42:8329]:43/xxx", "https", "[2001:db8::ff00:42:8329]:43", "/xxx", NULL, NULL);
     test_uri_split("file:///home/user/f.txt", "file", "", "/home/user/f.txt", NULL, NULL);
     test_uri_split("file://localhost/home/user/f.txt", "file", "localhost", "/home/user/f.txt", NULL, NULL);
-}
 
-void no_crash_uri_split_test(const char* struri)
-{
-    furi_string_view uri = furi_string_view_from_string(struri);
-    furi_split_uri(uri);
-    furi_get_scheme_from_uri(uri);
-    furi_get_authority_from_uri(uri);
-    furi_get_path_from_uri(uri);
-    furi_get_query_from_uri(uri);
-    furi_get_fragment_from_uri(uri);
-}
-
-void invalid_uri_split(void)
-{
-    // test invalid splits
-    // we don't care about the particular results here
-    // we only care that these don't crash or cause sanitizer issues problems
     no_crash_uri_split_test(":xx:#");
     no_crash_uri_split_test("////");
     no_crash_uri_split_test("#sad");
@@ -165,6 +162,15 @@ void test_authority_split(const char* strauthority,
     TEST_ASSERT_SV_EQUAL(s.port, furi_get_port_from_authority(a));
 }
 
+void no_crash_authority_split_test(const char* strauthority)
+{
+    furi_string_view a = furi_string_view_from_string(strauthority);
+    furi_split_authority(a);
+    furi_get_userinfo_from_authority(a);
+    furi_get_host_from_authority(a);
+    furi_get_port_from_authority(a);
+}
+
 void authority_split(void)
 {
     test_authority_split("", NULL, "", NULL);
@@ -180,6 +186,35 @@ void authority_split(void)
     test_authority_split("[::ff]:222", NULL, "[::ff]", "222");
     test_authority_split("x@[::2]:5", "x", "[::2]", "5");
     test_authority_split("x:y@[::b]:222", "x:y", "[::b]", "222");
+
+    no_crash_authority_split_test("]");
+    no_crash_authority_split_test("[");
+    no_crash_authority_split_test(":::");
+    no_crash_authority_split_test("@");
+    no_crash_authority_split_test("@]");
+    no_crash_authority_split_test("@[");
+    no_crash_authority_split_test("][");
+    no_crash_authority_split_test("[::]xx");
+}
+
+void test_userinfo_split(const char* strui, const char* username, const char* password)
+{
+    furi_string_view ui = furi_string_view_from_string(strui);
+    furi_userinfo_split s = furi_split_userinfo(ui);
+    TEST_ASSERT_EXPECT_SV(username, s.username);
+    TEST_ASSERT(!username == !s.username.begin);
+    TEST_ASSERT_SV_EQUAL(s.username, furi_get_username_from_userinfo(ui));
+    TEST_ASSERT_EXPECT_SV(password, s.password);
+    TEST_ASSERT(!password == !s.password.begin);
+    TEST_ASSERT_SV_EQUAL(s.password, furi_get_password_from_userinfo(ui));
+}
+
+void useinfo_split(void)
+{
+    test_userinfo_split("user", "user", NULL);
+    test_userinfo_split("user:", "user", "");
+    test_userinfo_split("user:pass", "user", "pass");
+    test_userinfo_split(":pass", "", "pass");
 }
 
 int main(void)
@@ -187,7 +222,7 @@ int main(void)
     UNITY_BEGIN();
     RUN_TEST(string_view);
     RUN_TEST(uri_split);
-    RUN_TEST(invalid_uri_split);
     RUN_TEST(authority_split);
+    RUN_TEST(useinfo_split);
     return UNITY_END();
 }

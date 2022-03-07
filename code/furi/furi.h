@@ -374,6 +374,41 @@ inline furi_string_view furi_get_port_from_authority(furi_string_view a)
     return a;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// userinfo split
+
+typedef struct furi_userinfo_split
+{
+    furi_string_view username;
+    furi_string_view password;
+} furi_userinfo_split;
+
+furi_userinfo_split furi_split_userinfo(furi_string_view ui)
+{
+    furi_userinfo_split ret = {ui, FURI_EMPTY_VAL}; // preemptively set user to entire string
+    const char* p = furi_string_view_find_first(ui, ':');
+    if (!p) return ret;
+
+    ret.username.end = p;
+    ret.password = furi_make_string_view(p + 1, ui.end);
+    return ret;
+}
+
+inline furi_string_view furi_get_username_from_userinfo(furi_string_view ui)
+{
+    const char* p = furi_string_view_find_first(ui, ':');
+    if (!p) return ui;
+    ui.end = p;
+    return ui;
+}
+
+inline furi_string_view furi_get_password_from_userinfo(furi_string_view ui)
+{
+    const char* p = furi_string_view_find_first(ui, ':');
+    if (!p) return (furi_string_view)FURI_EMPTY_VAL;
+    ui.begin = p + 1;
+    return ui;
+}
 
 #if defined(__cplusplus)
 } // extern "C"
