@@ -277,12 +277,13 @@ void test_query_iter(const char* strquery, const test_kv* elems, size_t num_elem
 void query_iter(void)
 {
     test_query_iter("", NULL, 0);
-    QUERY_ITER_CHECK("abc", {{"abc", ""}});
+    QUERY_ITER_CHECK("abc", {{"abc", NULL}});
     QUERY_ITER_CHECK("abc=123", {{"abc", "123"}});
-    QUERY_ITER_CHECK("xy=23&q=z&f", {{"xy", "23"}, {"q", "z"}, {"f", ""}});
-    QUERY_ITER_CHECK("f&xy=23&q=z", {{"f", ""}, {"xy", "23"}, {"q", "z"}});
-    QUERY_ITER_CHECK("xy=23&f&q=z", {{"xy", "23"}, {"f", ""}, {"q", "z"}});
-    QUERY_ITER_CHECK("a&b&c", {{"a", ""}, {"b", ""}, {"c", ""}});
+    QUERY_ITER_CHECK("xy=23&q=z&f", {{"xy", "23"}, {"q", "z"}, {"f", NULL}});
+    QUERY_ITER_CHECK("f&xy=23&q=z", {{"f", NULL}, {"xy", "23"}, {"q", "z"}});
+    QUERY_ITER_CHECK("xy=23&f&q=z", {{"xy", "23"}, {"f", NULL}, {"q", "z"}});
+    QUERY_ITER_CHECK("a&b&c", {{"a", NULL}, {"b", NULL}, {"c", NULL}});
+    QUERY_ITER_CHECK("a=1&b=&c", {{"a", "1"}, {"b", ""}, {"c", NULL}});
 
 }
 

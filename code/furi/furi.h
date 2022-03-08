@@ -584,24 +584,19 @@ inline furi_query_iter_value furi_query_iter_get_value(const furi_query_iter qi)
 {
     assert(qi.p <= qi.range_end); // out-of bounds check
 
-    const char* kend = qi.kv_sep_pos;
-    const char* vbegin = qi.kv_sep_pos;
-    if (!qi.kv_sep_pos)
+    furi_query_iter_value ret = FURI_EMPTY_VAL;
+    if (qi.kv_sep_pos)
     {
-        // no kv separator => empty value
-        kend = qi.p;
-        vbegin = qi.p;
+        ret.key = furi_make_sv(qi.begin + 1, qi.kv_sep_pos);
+        ret.value = furi_make_sv(qi.kv_sep_pos + 1, qi.p);
     }
     else
     {
-        // shift value to point after the separator
-        vbegin += 1;
+        // no key value separator, just a key
+        ret.key = furi_make_sv(qi.begin + 1, qi.p);
     }
 
-    return (furi_query_iter_value) {
-        furi_make_sv(qi.begin + 1, kend),
-        furi_make_sv(vbegin, qi.p)
-    };
+    return ret;
 }
 
 inline bool furi_query_iter_equal(const furi_query_iter a, const furi_query_iter b)
