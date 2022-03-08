@@ -25,6 +25,88 @@ typedef struct furi_sv
     const char* end; // one after the last character of the string
 } furi_sv;
 
+furi_sv furi_make_sv(const char* begin, const char* end);
+furi_sv furi_make_sv_from_string(const char* str);
+bool furi_sv_is_null(furi_sv sv);
+bool furi_sv_is_empty(furi_sv sv);
+size_t furi_sv_length(furi_sv sv);
+int furi_sv_cmp(furi_sv a, furi_sv b);
+bool furi_sv_starts_with(furi_sv sv, const char* prefix);
+const char* furi_sv_find_first(furi_sv sv, char q);
+const char* furi_sv_find_last(furi_sv sv, char q);
+
+///////////////////////////////////////////////////////////////////////////////
+// uri split
+typedef struct furi_uri_split
+{
+    furi_sv scheme;
+    furi_sv authority;
+    furi_sv path;
+    furi_sv query;
+    furi_sv fragment;
+} furi_uri_split;
+
+furi_uri_split furi_split_uri(furi_sv u);
+
+// indivitual getters
+furi_sv furi_get_scheme_from_uri(furi_sv u);
+furi_sv furi_get_authority_from_uri(furi_sv u);
+furi_sv furi_get_path_from_uri(furi_sv u);
+furi_sv furi_get_query_from_uri(furi_sv u);
+furi_sv furi_get_fragment_from_uri(furi_sv u);
+
+///////////////////////////////////////////////////////////////////////////////
+// authority split
+typedef struct furi_authority_split
+{
+    furi_sv userinfo;
+    furi_sv host;
+    furi_sv port;
+} furi_authority_split;
+
+furi_authority_split furi_split_authority(furi_sv a);
+
+// individual getters
+furi_sv furi_get_userinfo_from_authority(furi_sv a);
+furi_sv furi_get_host_from_authority(furi_sv a);
+furi_sv furi_get_port_from_authority(furi_sv a);
+
+///////////////////////////////////////////////////////////////////////////////
+// userinfo split
+typedef struct furi_userinfo_split
+{
+    furi_sv username;
+    furi_sv password;
+} furi_userinfo_split;
+
+furi_userinfo_split furi_split_userinfo(furi_sv ui);
+
+// individual getters
+furi_sv furi_get_username_from_userinfo(furi_sv ui);
+furi_sv furi_get_password_from_userinfo(furi_sv ui);
+
+///////////////////////////////////////////////////////////////////////////////
+// path iterator
+typedef struct furi_path_iter
+{
+    const char* begin;
+    const char* p;
+    const char* range_end;
+} furi_path_iter;
+
+furi_path_iter furi_make_path_iter_end(const furi_sv path);
+void furi_path_iter_next(furi_path_iter* pi);
+furi_path_iter furi_make_path_iter_begin(const furi_sv path);
+bool furi_path_iter_is_done(const furi_path_iter pi);
+furi_sv furi_path_iter_get_value(const furi_path_iter pi);
+int furi_path_iter_cmp(const furi_path_iter a, const furi_path_iter b);
+
+///////////////////////////////////////////////////////////////////////////////
+// definitions
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// string view
 inline furi_sv furi_make_sv(const char* begin, const char* end)
 {
     furi_sv ret = {begin, end};
@@ -97,30 +179,19 @@ inline const char* furi_sv_find_first(furi_sv sv, char q)
 inline const char* furi_sv_find_last(furi_sv sv, char q)
 {
     size_t len = furi_sv_length(sv);
-
-#if defined(_MSC_VER)
     while (len--)
     {
         if (sv.begin[len] == q) return sv.begin + len;
     }
     return NULL;
-#else
-    if (!len) return NULL; // avoid memchr with null
-    return (const char*)memrchr(sv.begin, q, len);
-#endif
+
+    // future:
+    // if (!len) return NULL; // avoid memchr with null
+    // return (const char*)memrchr(sv.begin, q, len);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // uri split
-
-typedef struct furi_uri_split
-{
-    furi_sv scheme;
-    furi_sv authority;
-    furi_sv path;
-    furi_sv query;
-    furi_sv fragment;
-} furi_uri_split;
 
 inline furi_uri_split furi_split_uri(furi_sv u)
 {
@@ -283,13 +354,6 @@ inline furi_sv furi_get_fragment_from_uri(furi_sv u)
 ///////////////////////////////////////////////////////////////////////////////
 // authority split
 
-typedef struct furi_authority_split
-{
-    furi_sv userinfo;
-    furi_sv host;
-    furi_sv port;
-} furi_authority_split;
-
 inline furi_authority_split furi_split_authority(furi_sv a)
 {
     furi_authority_split ret = FURI_EMPTY_VAL;
@@ -378,13 +442,7 @@ inline furi_sv furi_get_port_from_authority(furi_sv a)
 ///////////////////////////////////////////////////////////////////////////////
 // userinfo split
 
-typedef struct furi_userinfo_split
-{
-    furi_sv username;
-    furi_sv password;
-} furi_userinfo_split;
-
-furi_userinfo_split furi_split_userinfo(furi_sv ui)
+inline furi_userinfo_split furi_split_userinfo(furi_sv ui)
 {
     furi_userinfo_split ret = {ui, FURI_EMPTY_VAL}; // preemptively set user to entire string
     const char* p = furi_sv_find_first(ui, ':');
@@ -413,12 +471,6 @@ inline furi_sv furi_get_password_from_userinfo(furi_sv ui)
 
 ///////////////////////////////////////////////////////////////////////////////
 // path iterator
-typedef struct furi_path_iter
-{
-    const char* begin;
-    const char* p;
-    const char* range_end;
-} furi_path_iter;
 
 inline furi_path_iter furi_make_path_iter_end(const furi_sv path)
 {

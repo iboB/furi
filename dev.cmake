@@ -1,6 +1,7 @@
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 99)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(USE_ASAN "furi-dev: build with address sanitizer on" OFF)
