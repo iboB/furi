@@ -248,6 +248,44 @@ void path_iter(void)
     PATH_ITER_CHECK("foo/bar/baz/", {"foo", "bar", "baz", ""});
 }
 
+typedef struct
+{
+    const char* key;
+    const char* value;
+} test_kv;
+
+void test_query_iter(const char* strquery, const test_kv* elems, size_t num_elems)
+{
+    furi_sv query = furi_make_sv_from_string(strquery);
+    size_t ei = 0;
+    for (furi_query_iter iter = furi_make_query_iter_begin(query); !furi_query_iter_is_done(iter); furi_query_iter_next(&iter), ++ei)
+    {
+        TEST_ASSERT_LESS_THAN_size_t(num_elems, ei);
+        furi_query_iter_value val = furi_query_iter_get_value(iter);
+        TEST_ASSERT_EXPECT_SV(elems[ei].key, val.key);
+        TEST_ASSERT_EXPECT_SV(elems[ei].value, val.value);
+    }
+    TEST_ASSERT_EQUAL_size_t(num_elems, ei);
+}
+
+#define QUERY_ITER_CHECK(str, ...) { \
+    test_kv elems[] = __VA_ARGS__; \
+    size_t num_elems = sizeof(elems) / sizeof(test_kv); \
+    test_query_iter(str, elems, num_elems); \
+}
+
+void query_iter(void)
+{
+    test_query_iter("", NULL, 0);
+    QUERY_ITER_CHECK("abc", {{"abc", ""}});
+    QUERY_ITER_CHECK("abc=123", {{"abc", "123"}});
+    QUERY_ITER_CHECK("xy=23&q=z&f", {{"xy", "23"}, {"q", "z"}, {"f", ""}});
+    QUERY_ITER_CHECK("f&xy=23&q=z", {{"f", ""}, {"xy", "23"}, {"q", "z"}});
+    QUERY_ITER_CHECK("xy=23&f&q=z", {{"xy", "23"}, {"f", ""}, {"q", "z"}});
+    QUERY_ITER_CHECK("a&b&c", {{"a", ""}, {"b", ""}, {"c", ""}});
+
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -256,5 +294,6 @@ int main(void)
     RUN_TEST(authority_split);
     RUN_TEST(useinfo_split);
     RUN_TEST(path_iter);
+    RUN_TEST(query_iter);
     return UNITY_END();
 }

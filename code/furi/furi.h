@@ -94,12 +94,43 @@ typedef struct furi_path_iter
     const char* range_end;
 } furi_path_iter;
 
-furi_path_iter furi_make_path_iter_end(const furi_sv path);
-void furi_path_iter_next(furi_path_iter* pi);
 furi_path_iter furi_make_path_iter_begin(const furi_sv path);
+furi_path_iter furi_make_path_iter_end(const furi_sv path);
+
+void furi_path_iter_next(furi_path_iter* pi);
 bool furi_path_iter_is_done(const furi_path_iter pi);
+
 furi_sv furi_path_iter_get_value(const furi_path_iter pi);
-int furi_path_iter_cmp(const furi_path_iter a, const furi_path_iter b);
+
+bool furi_path_iter_equal(const furi_path_iter a, const furi_path_iter b);
+
+///////////////////////////////////////////////////////////////////////////////
+// query iterator
+#define FURI_QUERY_KV_SEP '='
+#define FURI_QUERY_ITEM_SEP '&'
+
+typedef struct furi_query_iter
+{
+    const char* begin;
+    const char* p;
+    const char* range_end;
+    const char* kv_sep_pos;
+} furi_query_iter;
+
+furi_query_iter furi_make_query_iter_begin(const furi_sv query);
+furi_query_iter furi_make_query_iter_end(const furi_sv query);
+
+void furi_query_iter_next(furi_query_iter* qi);
+bool furi_query_iter_is_done(const furi_query_iter qi);
+
+typedef struct furi_query_iter_value
+{
+    furi_sv key;
+    furi_sv value;
+} furi_query_iter_value;
+furi_query_iter_value furi_query_iter_get_value(const furi_query_iter qi);
+
+bool furi_query_iter_equal(const furi_query_iter a, const furi_query_iter b);
 
 ///////////////////////////////////////////////////////////////////////////////
 // definitions
@@ -109,8 +140,7 @@ int furi_path_iter_cmp(const furi_path_iter a, const furi_path_iter b);
 // string view
 inline furi_sv furi_make_sv(const char* begin, const char* end)
 {
-    furi_sv ret = {begin, end};
-    return ret;
+    return (furi_sv){begin, end};
 }
 
 inline furi_sv furi_make_sv_from_string(const char* str)
@@ -510,11 +540,73 @@ inline furi_sv furi_path_iter_get_value(const furi_path_iter pi)
     return furi_make_sv(pi.begin + 1, pi.p);
 }
 
-inline int furi_path_iter_cmp(const furi_path_iter a, const furi_path_iter b)
+inline bool furi_path_iter_equal(const furi_path_iter a, const furi_path_iter b)
 {
-    if (a.begin == b.begin) return 0;
-    if (a.begin < b.begin) return -1;
-    return 1;
+    return a.begin == b.begin;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// query iterator
+
+inline furi_query_iter furi_make_query_iter_end(const furi_sv query)
+{
+    return (furi_query_iter){query.end, query.end, query.end, NULL};
+}
+
+inline void furi_query_iter_next(furi_query_iter* qi)
+{
+    qi->kv_sep_pos = NULL;
+    qi->begin = qi->p;
+    ++qi->p; // overflow to skip last separator
+
+    for (; qi->p < qi->range_end; ++qi->p)
+    {
+        if (*qi->p == FURI_QUERY_KV_SEP) qi->kv_sep_pos = qi->p;
+        if (*qi->p == FURI_QUERY_ITEM_SEP) break;
+    }
+}
+
+inline furi_query_iter furi_make_query_iter_begin(const furi_sv query)
+{
+    if (furi_sv_is_empty(query)) return furi_make_query_iter_end(query);
+    furi_query_iter r = {query.begin, query.begin, query.end, NULL};
+    --r.p; // hacky redirect for lack of initial item separator
+    furi_query_iter_next(&r);
+    return r;
+}
+
+inline bool furi_query_iter_is_done(const furi_query_iter qi)
+{
+    return qi.begin == qi.range_end;
+}
+
+inline furi_query_iter_value furi_query_iter_get_value(const furi_query_iter qi)
+{
+    assert(qi.p <= qi.range_end); // out-of bounds check
+
+    const char* kend = qi.kv_sep_pos;
+    const char* vbegin = qi.kv_sep_pos;
+    if (!qi.kv_sep_pos)
+    {
+        // no kv separator => empty value
+        kend = qi.p;
+        vbegin = qi.p;
+    }
+    else
+    {
+        // shift value to point after the separator
+        vbegin += 1;
+    }
+
+    return (furi_query_iter_value) {
+        furi_make_sv(qi.begin + 1, kend),
+        furi_make_sv(vbegin, qi.p)
+    };
+}
+
+inline bool furi_query_iter_equal(const furi_query_iter a, const furi_query_iter b)
+{
+    return a.begin == b.begin;
 }
 
 #if defined(__cplusplus)
