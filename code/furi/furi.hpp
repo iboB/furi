@@ -176,7 +176,7 @@ class path_iterator
 {
     capi::furi_path_iter m_pi;
 public:
-    path_iterator() : m_pi({ nullptr, nullptr, nullptr }) {}
+    path_iterator() : m_pi({nullptr, nullptr, nullptr}) {}
     explicit path_iterator(const capi::furi_path_iter& pi) : m_pi(pi) {};
 
     static path_iterator begin_of(opt_string_view path) noexcept
@@ -225,7 +225,7 @@ class query_iterator
 {
     capi::furi_query_iter m_qi;
 public:
-    query_iterator() : m_qi({ nullptr, nullptr, nullptr }) {}
+    query_iterator() : m_qi({nullptr, nullptr, nullptr, nullptr}) {}
     explicit query_iterator(const capi::furi_query_iter& pi) : m_qi(pi) {};
 
     static query_iterator begin_of(opt_string_view path) noexcept
