@@ -238,8 +238,8 @@ inline furi_uri_split furi_split_uri(furi_sv u)
             ret.scheme = furi_make_sv(u.begin, p);
             u = furi_make_sv(p + 1, u.end); // slice scheme off
 
-                                            // since we have a scheme, we can also search for authority
-                                            // note with no scheme, there is no possibility to have authority
+            // since we have a scheme, we can also search for authority
+            // note with no scheme, there is no possibility to have authority
             if (furi_sv_starts_with(u, "//"))
             {
                 // authority found
@@ -403,7 +403,7 @@ inline furi_authority_split furi_split_authority(furi_sv a)
 
     if (furi_sv_is_empty(a)) return ret; // empty host
 
-                                         // check for ipv6
+    // check for ipv6
     if (a.begin[0] == '[')
     {
         const char* bf = furi_sv_find_first(a, ']');
@@ -539,7 +539,7 @@ inline furi_sv furi_path_iter_get_value(const furi_path_iter pi)
 {
     assert(pi.p <= pi.range_end); // out-of bounds check
 
-                                  // at this point begin points to one before the actual item
+    // at this point begin points to one before the actual item
     return furi_make_sv(pi.begin + 1, pi.p);
 }
 
