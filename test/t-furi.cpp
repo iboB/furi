@@ -75,7 +75,7 @@ TEST_CASE("uri_split")
     CHECK(s.scheme == uri_split::get_scheme_from_uri(uri));
     CHECK(s.authority == "x.com:43");
     CHECK(s.authority == uri_split::get_authority_from_uri(uri));
-    CHECK(s.path == "/abc");
+    CHECK(s.path == "abc");
     CHECK(s.path == uri_split::get_path_from_uri(uri));
     CHECK(s.query == "xyz");
     CHECK(s.query == uri_split::get_query_from_uri(uri));

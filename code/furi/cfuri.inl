@@ -253,7 +253,7 @@ inline furi_uri_split furi_split_uri(furi_sv u)
                 }
 
                 ret.authority = furi_make_sv(u.begin, f);
-                u.begin = f; // slice authority off
+                u.begin = f + 1; // slice off authority and path sep
             }
 
             p = u.begin; // redirect p in u
@@ -354,7 +354,9 @@ inline furi_sv furi_get_path_from_uri(furi_sv u)
         // in such case we don't touch u
         // otherwise we slice off what we have
         // first try with authority and if not slice off scheme AND colon
-        u.begin = a.begin ? a.end : s.end + 1;
+        if (a.end == u.end) return FURI_EMPTY_T(furi_sv); // nothing more than authority
+        u.begin = a.begin ? a.end : s.end;
+        ++u.begin; // slice off colon or slash
     }
 
     for (const char* p = u.begin; p != u.end; ++p)
@@ -523,7 +525,7 @@ inline void furi_path_iter_next(furi_path_iter* pi)
 
 inline furi_path_iter furi_make_path_iter_begin(const furi_sv path)
 {
-    if (furi_sv_is_empty(path)) return furi_make_path_iter_end(path);
+    if (furi_sv_is_null(path)) return furi_make_path_iter_end(path);
     furi_path_iter r = {path.begin, path.begin, path.end};
     if (path.begin[0] != '/') --r.p; // hacky redirect for paths which don't begin with /
     furi_path_iter_next(&r);
