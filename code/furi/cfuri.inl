@@ -7,7 +7,7 @@
 //
 
 // no include guard
-// this file may be included in c++ withing a namespace
+// this file may be included in c++ within a namespace
 
 #if defined(__cplusplus)
 #define FURI_EMPTY_VAL {}
@@ -49,7 +49,7 @@ typedef struct furi_uri_split
 
 furi_uri_split furi_split_uri(furi_sv u);
 
-// indivitual getters
+// individual getters
 furi_sv furi_get_scheme_from_uri(furi_sv u);
 furi_sv furi_get_authority_from_uri(furi_sv u);
 furi_sv furi_get_path_from_uri(furi_sv u);
@@ -310,7 +310,7 @@ inline furi_uri_split furi_split_uri(furi_sv u)
     return ret;
 }
 
-// indivitual getters
+// individual getters
 
 inline furi_sv furi_get_scheme_from_uri(furi_sv u)
 {
