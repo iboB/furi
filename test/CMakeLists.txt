@@ -25,7 +25,17 @@ macro(add_furi_c_test test)
     )
 endmacro()
 
-# No tests for strutil as it copied from iboB/itlib. It's tested there
-
 add_furi_c_test(c_core t-furi.c)
 add_furi_cpp_test(cpp_core t-furi.cpp)
+
+# if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+#     set(exe furi-fuzz)
+#     add_executable(${exe} f-furi.c)
+#     target_link_libraries(${exe} furi)
+#     target_compile_options(${exe} PRIVATE -g)
+#     target_link_options(${exe} PRIVATE
+#         -fsanitize=fuzzer
+#         -coverage
+#         -fsanitize-coverage=edge,trace-pc-guard,indirect-calls,trace-cmp,trace-div,trace-gep)
+#     add_test(NAME ${exe} COMMAND ${exe} --max_total_time=1)
+# endif()
