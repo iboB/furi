@@ -361,6 +361,7 @@ inline furi_sv furi_get_path_from_uri(furi_sv u)
 
     for (const char* p = u.begin; p != u.end; ++p)
     {
+        // break if we encounter query or fragment
         if (*p == '?' || *p == '#') return furi_make_sv(u.begin, p);
     }
 
@@ -463,11 +464,11 @@ inline furi_sv furi_get_host_from_authority(furi_sv a)
 
 inline furi_sv furi_get_port_from_authority(furi_sv a)
 {
-    const char* p = furi_sv_find_first(a, '@');
+    const char* p = furi_sv_find_first(a, '@'); // skip userinfo if any
     if (p) a.begin = p + 1;
-    p = furi_sv_find_first(a, ']');
+    p = furi_sv_find_first(a, ']'); // skip ipv6 if any
     if (p) a.begin = p + 1;
-    p = furi_sv_find_first(a, ':');
+    p = furi_sv_find_first(a, ':'); // find port separator
     if (!p) return FURI_EMPTY_T(furi_sv);
     a.begin = p + 1;
     return a;
