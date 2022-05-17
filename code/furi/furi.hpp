@@ -6,19 +6,14 @@
 // https://opensource.org/licenses/MIT
 //
 #pragma once
-#include <cstring>
-#include <cassert>
 #include <string_view>
 #include <utility>
 
+#define FURI_CPP_NAMESPACE furi::capi
+#include "furi.h"
+
 namespace furi
 {
-namespace capi
-{
-// hide the c api in a namespace
-#include "cfuri.inl"
-}
-
 // optional string view
 // has an operator bool which makes the difference between "" and nullptr
 class opt_string_view
