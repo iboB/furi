@@ -21,8 +21,9 @@ void std_sv_test(opt_string_view e)
 {
     std::string_view stdsv = e;
     CHECK(stdsv == e);
+    CHECK(e == stdsv);
     CHECK(stdsv.length() == e.length());
-    CHECK(stdsv.data() == e.data());
+    CHECK((void*)stdsv.data() == e.data()); // cast to void* to deal with potential DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
 }
 
 TEST_CASE("string view")
@@ -53,7 +54,8 @@ TEST_CASE("string view")
     CHECK(e2.data() != nullptr);
     std_sv_test(e2);
 
-    opt_string_view abc = "abc";
+    std::string_view svabc = "abc";
+    opt_string_view abc = svabc;
     CHECK(!!abc);
     CHECK(!abc.empty());
     CHECK(abc.length() == 3);
