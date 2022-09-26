@@ -2,14 +2,11 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 include(./get_cpm.cmake)
 
-CPMAddPackage(gh:iboB/icm@1.3.3)
-CPMAddPackage(gh:iboB/doctest-lib@2.4.6)
+CPMAddPackage(gh:iboB/doctest-util@0.0.5)
 CPMAddPackage(gh:ThrowTheSwitch/Unity@2.5.2)
 
-include(${icm_SOURCE_DIR}/icm_testing.cmake)
-
 macro(add_furi_cpp_test test)
-    icm_add_doctest_lib_test(${test} furi ${ARGN})
+    add_doctest_lib_test(${test} furi ${ARGN})
 endmacro()
 
 macro(add_furi_c_test test)
@@ -17,7 +14,7 @@ macro(add_furi_c_test test)
         NAME furi-${test}
         TARGET test-furi-${test}
         LIBRARIES
-            unity
+            unity::framework
             furi
         SOURCES
             ${ARGN}
