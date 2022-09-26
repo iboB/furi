@@ -1,3 +1,6 @@
+// Copyright (c) Borislav Stanimirov
+// SPDX-License-Identifier: MIT
+//
 #include <stdint.h>
 #include <stddef.h>
 
