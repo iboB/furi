@@ -14,9 +14,11 @@
 #   else
         extern "C" {
 #   endif
+#define FURI_INLINE inline
 #else
 #define FURI_EMPTY_VAL {0}
 #define FURI_EMPTY_T(T) (T){0}
+#define FURI_INLINE static inline
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,147 +29,34 @@ typedef struct furi_sv
     const char* end; // one after the last character of the string
 } furi_sv;
 
-furi_sv furi_make_sv(const char* begin, const char* end);
-furi_sv furi_make_sv_from_string(const char* str);
-bool furi_sv_is_null(furi_sv sv);
-bool furi_sv_is_empty(furi_sv sv);
-size_t furi_sv_length(furi_sv sv);
-int furi_sv_cmp(furi_sv a, furi_sv b);
-bool furi_sv_starts_with(furi_sv sv, const char* prefix);
-const char* furi_sv_find_first(furi_sv sv, char q);
-const char* furi_sv_find_last(furi_sv sv, char q);
-
-///////////////////////////////////////////////////////////////////////////////
-// uri split
-typedef struct furi_uri_split
+FURI_INLINE furi_sv furi_make_sv(const char* begin, const char* end)
 {
-    furi_sv scheme;
-    furi_sv authority;
-    furi_sv path;
-    furi_sv query;
-    furi_sv fragment;
-} furi_uri_split;
-
-furi_uri_split furi_split_uri(furi_sv u);
-
-// individual getters
-furi_sv furi_get_scheme_from_uri(furi_sv u);
-furi_sv furi_get_authority_from_uri(furi_sv u);
-furi_sv furi_get_path_from_uri(furi_sv u);
-furi_sv furi_get_query_from_uri(furi_sv u);
-furi_sv furi_get_fragment_from_uri(furi_sv u);
-
-///////////////////////////////////////////////////////////////////////////////
-// authority split
-typedef struct furi_authority_split
-{
-    furi_sv userinfo;
-    furi_sv host;
-    furi_sv port;
-} furi_authority_split;
-
-furi_authority_split furi_split_authority(furi_sv a);
-
-// individual getters
-furi_sv furi_get_userinfo_from_authority(furi_sv a);
-furi_sv furi_get_host_from_authority(furi_sv a);
-furi_sv furi_get_port_from_authority(furi_sv a);
-
-///////////////////////////////////////////////////////////////////////////////
-// userinfo split
-typedef struct furi_userinfo_split
-{
-    furi_sv username;
-    furi_sv password;
-} furi_userinfo_split;
-
-furi_userinfo_split furi_split_userinfo(furi_sv ui);
-
-// individual getters
-furi_sv furi_get_username_from_userinfo(furi_sv ui);
-furi_sv furi_get_password_from_userinfo(furi_sv ui);
-
-///////////////////////////////////////////////////////////////////////////////
-// path iterator
-typedef struct furi_path_iter
-{
-    const char* begin;
-    const char* p;
-    const char* range_end;
-} furi_path_iter;
-
-furi_path_iter furi_make_path_iter_begin(const furi_sv path);
-furi_path_iter furi_make_path_iter_end(const furi_sv path);
-
-void furi_path_iter_next(furi_path_iter* pi);
-bool furi_path_iter_is_done(const furi_path_iter pi);
-
-furi_sv furi_path_iter_get_value(const furi_path_iter pi);
-
-bool furi_path_iter_equal(const furi_path_iter a, const furi_path_iter b);
-
-///////////////////////////////////////////////////////////////////////////////
-// query iterator
-#define FURI_QUERY_KV_SEP '='
-#define FURI_QUERY_ITEM_SEP '&'
-
-typedef struct furi_query_iter
-{
-    const char* begin;
-    const char* p;
-    const char* range_end;
-    const char* kv_sep_pos;
-} furi_query_iter;
-
-furi_query_iter furi_make_query_iter_begin(const furi_sv query);
-furi_query_iter furi_make_query_iter_end(const furi_sv query);
-
-void furi_query_iter_next(furi_query_iter* qi);
-bool furi_query_iter_is_done(const furi_query_iter qi);
-
-typedef struct furi_query_iter_value
-{
-    furi_sv key;
-    furi_sv value;
-} furi_query_iter_value;
-furi_query_iter_value furi_query_iter_get_value(const furi_query_iter qi);
-
-bool furi_query_iter_equal(const furi_query_iter a, const furi_query_iter b);
-
-///////////////////////////////////////////////////////////////////////////////
-// definitions
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-// string view
-inline furi_sv furi_make_sv(const char* begin, const char* end)
-{
-    furi_sv ret = { begin, end };
+    furi_sv ret = {begin, end};
     return ret;
 }
 
-inline furi_sv furi_make_sv_from_string(const char* str)
+FURI_INLINE furi_sv furi_make_sv_from_string(const char* str)
 {
     if (!str) return FURI_EMPTY_T(furi_sv);
     return furi_make_sv(str, str + strlen(str));
 }
 
-inline bool furi_sv_is_null(furi_sv sv)
+FURI_INLINE bool furi_sv_is_null(furi_sv sv)
 {
     return !sv.begin;
 }
 
-inline size_t furi_sv_length(furi_sv sv)
+FURI_INLINE size_t furi_sv_length(furi_sv sv)
 {
     return sv.end - sv.begin;
 }
 
-inline bool furi_sv_is_empty(furi_sv sv)
+FURI_INLINE bool furi_sv_is_empty(furi_sv sv)
 {
     return sv.begin == sv.end;
 }
 
-inline int furi_sv_cmp(furi_sv a, furi_sv b)
+FURI_INLINE int furi_sv_cmp(furi_sv a, furi_sv b)
 {
     // avoid memcmp with null
     if (a.begin == b.begin) return 0;
@@ -193,7 +82,7 @@ inline int furi_sv_cmp(furi_sv a, furi_sv b)
 }
 
 
-inline bool furi_sv_starts_with(furi_sv sv, const char* prefix)
+FURI_INLINE bool furi_sv_starts_with(furi_sv sv, const char* prefix)
 {
     size_t svlen = furi_sv_length(sv);
     size_t plen = strlen(prefix);
@@ -202,14 +91,14 @@ inline bool furi_sv_starts_with(furi_sv sv, const char* prefix)
     return memcmp(sv.begin, prefix, plen) == 0;
 }
 
-inline const char* furi_sv_find_first(furi_sv sv, char q)
+FURI_INLINE const char* furi_sv_find_first(furi_sv sv, char q)
 {
     size_t len = furi_sv_length(sv);
     if (!len) return NULL; // avoid memchr with null
     return (const char*)memchr(sv.begin, q, len);
 }
 
-inline const char* furi_sv_find_last(furi_sv sv, char q)
+FURI_INLINE const char* furi_sv_find_last(furi_sv sv, char q)
 {
     size_t len = furi_sv_length(sv);
     while (len--)
@@ -225,8 +114,17 @@ inline const char* furi_sv_find_last(furi_sv sv, char q)
 
 ///////////////////////////////////////////////////////////////////////////////
 // uri split
+typedef struct furi_uri_split
+{
+    furi_sv scheme;
+    furi_sv authority;
+    furi_sv path;
+    furi_sv query;
+    furi_sv fragment;
+} furi_uri_split;
 
-inline furi_uri_split furi_split_uri(furi_sv u)
+
+FURI_INLINE furi_uri_split furi_split_uri(furi_sv u)
 {
     furi_uri_split ret = FURI_EMPTY_VAL;
 
@@ -313,7 +211,7 @@ inline furi_uri_split furi_split_uri(furi_sv u)
 
 // individual getters
 
-inline furi_sv furi_get_scheme_from_uri(furi_sv u)
+FURI_INLINE furi_sv furi_get_scheme_from_uri(furi_sv u)
 {
     for (const char* p = u.begin; p != u.end; ++p)
     {
@@ -323,7 +221,7 @@ inline furi_sv furi_get_scheme_from_uri(furi_sv u)
     return FURI_EMPTY_T(furi_sv);
 }
 
-inline furi_sv furi_get_authority_from_uri(furi_sv u)
+FURI_INLINE furi_sv furi_get_authority_from_uri(furi_sv u)
 {
     furi_sv s = furi_get_scheme_from_uri(u);
     if (!furi_sv_is_null(s))
@@ -344,7 +242,7 @@ inline furi_sv furi_get_authority_from_uri(furi_sv u)
     return u; // uri has authority and nothing else
 }
 
-inline furi_sv furi_get_path_from_uri(furi_sv u)
+FURI_INLINE furi_sv furi_get_path_from_uri(furi_sv u)
 {
     furi_sv s = furi_get_scheme_from_uri(u);
     furi_sv a = furi_get_authority_from_uri(u);
@@ -369,7 +267,7 @@ inline furi_sv furi_get_path_from_uri(furi_sv u)
     return u;
 }
 
-inline furi_sv furi_get_query_from_uri(furi_sv u)
+FURI_INLINE furi_sv furi_get_query_from_uri(furi_sv u)
 {
     const char* p = furi_sv_find_first(u, '?');
     if (!p) return FURI_EMPTY_T(furi_sv); // no query
@@ -379,7 +277,7 @@ inline furi_sv furi_get_query_from_uri(furi_sv u)
     return u;
 }
 
-inline furi_sv furi_get_fragment_from_uri(furi_sv u)
+FURI_INLINE furi_sv furi_get_fragment_from_uri(furi_sv u)
 {
     const char* p = furi_sv_find_last(u, '#');
     if (!p) return FURI_EMPTY_T(furi_sv);
@@ -389,8 +287,14 @@ inline furi_sv furi_get_fragment_from_uri(furi_sv u)
 
 ///////////////////////////////////////////////////////////////////////////////
 // authority split
+typedef struct furi_authority_split
+{
+    furi_sv userinfo;
+    furi_sv host;
+    furi_sv port;
+} furi_authority_split;
 
-inline furi_authority_split furi_split_authority(furi_sv a)
+FURI_INLINE furi_authority_split furi_split_authority(furi_sv a)
 {
     furi_authority_split ret = FURI_EMPTY_VAL;
 
@@ -440,7 +344,7 @@ inline furi_authority_split furi_split_authority(furi_sv a)
 
 // individual getters
 
-inline furi_sv furi_get_userinfo_from_authority(furi_sv a)
+FURI_INLINE furi_sv furi_get_userinfo_from_authority(furi_sv a)
 {
     const char* p = furi_sv_find_first(a, '@');
     if (!p) return FURI_EMPTY_T(furi_sv);
@@ -448,7 +352,7 @@ inline furi_sv furi_get_userinfo_from_authority(furi_sv a)
     return a;
 }
 
-inline furi_sv furi_get_host_from_authority(furi_sv a)
+FURI_INLINE furi_sv furi_get_host_from_authority(furi_sv a)
 {
     const char* p = furi_sv_find_first(a, '@');
     if (p) a.begin = p + 1; // cut the @ symbol as well
@@ -463,7 +367,7 @@ inline furi_sv furi_get_host_from_authority(furi_sv a)
     return a;
 }
 
-inline furi_sv furi_get_port_from_authority(furi_sv a)
+FURI_INLINE furi_sv furi_get_port_from_authority(furi_sv a)
 {
     const char* p = furi_sv_find_first(a, '@'); // skip userinfo if any
     if (p) a.begin = p + 1;
@@ -475,12 +379,19 @@ inline furi_sv furi_get_port_from_authority(furi_sv a)
     return a;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // userinfo split
-
-inline furi_userinfo_split furi_split_userinfo(furi_sv ui)
+typedef struct furi_userinfo_split
 {
-    furi_userinfo_split ret = { ui, FURI_EMPTY_VAL }; // preemptively set user to entire string
+    furi_sv username;
+    furi_sv password;
+} furi_userinfo_split;
+
+
+FURI_INLINE furi_userinfo_split furi_split_userinfo(furi_sv ui)
+{
+    furi_userinfo_split ret = {ui, FURI_EMPTY_VAL}; // preemptively set user to entire string
     const char* p = furi_sv_find_first(ui, ':');
     if (!p) return ret;
 
@@ -489,7 +400,7 @@ inline furi_userinfo_split furi_split_userinfo(furi_sv ui)
     return ret;
 }
 
-inline furi_sv furi_get_username_from_userinfo(furi_sv ui)
+FURI_INLINE furi_sv furi_get_username_from_userinfo(furi_sv ui)
 {
     const char* p = furi_sv_find_first(ui, ':');
     if (!p) return ui;
@@ -497,7 +408,7 @@ inline furi_sv furi_get_username_from_userinfo(furi_sv ui)
     return ui;
 }
 
-inline furi_sv furi_get_password_from_userinfo(furi_sv ui)
+FURI_INLINE furi_sv furi_get_password_from_userinfo(furi_sv ui)
 {
     const char* p = furi_sv_find_first(ui, ':');
     if (!p) return FURI_EMPTY_T(furi_sv);
@@ -507,14 +418,20 @@ inline furi_sv furi_get_password_from_userinfo(furi_sv ui)
 
 ///////////////////////////////////////////////////////////////////////////////
 // path iterator
+typedef struct furi_path_iter
+{
+    const char* begin;
+    const char* p;
+    const char* range_end;
+} furi_path_iter;
 
-inline furi_path_iter furi_make_path_iter_end(const furi_sv path)
+FURI_INLINE furi_path_iter furi_make_path_iter_end(const furi_sv path)
 {
     furi_path_iter ret = { path.end, path.end, path.end };
     return ret;
 }
 
-inline void furi_path_iter_next(furi_path_iter* pi)
+FURI_INLINE void furi_path_iter_next(furi_path_iter* pi)
 {
     pi->begin = pi->p;
     ++pi->p; // overflow to skip last separator
@@ -525,7 +442,7 @@ inline void furi_path_iter_next(furi_path_iter* pi)
     }
 }
 
-inline furi_path_iter furi_make_path_iter_begin(const furi_sv path)
+FURI_INLINE furi_path_iter furi_make_path_iter_begin(const furi_sv path)
 {
     if (furi_sv_is_null(path)) return furi_make_path_iter_end(path);
     furi_path_iter r = { path.begin, path.begin, path.end };
@@ -534,12 +451,12 @@ inline furi_path_iter furi_make_path_iter_begin(const furi_sv path)
     return r;
 }
 
-inline bool furi_path_iter_is_done(const furi_path_iter pi)
+FURI_INLINE bool furi_path_iter_is_done(const furi_path_iter pi)
 {
     return pi.begin == pi.range_end;
 }
 
-inline furi_sv furi_path_iter_get_value(const furi_path_iter pi)
+FURI_INLINE furi_sv furi_path_iter_get_value(const furi_path_iter pi)
 {
     assert(pi.p <= pi.range_end); // out-of bounds check
 
@@ -547,21 +464,31 @@ inline furi_sv furi_path_iter_get_value(const furi_path_iter pi)
     return furi_make_sv(pi.begin + 1, pi.p);
 }
 
-inline bool furi_path_iter_equal(const furi_path_iter a, const furi_path_iter b)
+FURI_INLINE bool furi_path_iter_equal(const furi_path_iter a, const furi_path_iter b)
 {
     return a.begin == b.begin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // query iterator
+#define FURI_QUERY_KV_SEP '='
+#define FURI_QUERY_ITEM_SEP '&'
 
-inline furi_query_iter furi_make_query_iter_end(const furi_sv query)
+typedef struct furi_query_iter
 {
-    furi_query_iter ret = { query.end, query.end, query.end, NULL };
+    const char* begin;
+    const char* p;
+    const char* range_end;
+    const char* kv_sep_pos;
+} furi_query_iter;
+
+FURI_INLINE furi_query_iter furi_make_query_iter_end(const furi_sv query)
+{
+    furi_query_iter ret = {query.end, query.end, query.end, NULL};
     return ret;
 }
 
-inline void furi_query_iter_next(furi_query_iter* qi)
+FURI_INLINE void furi_query_iter_next(furi_query_iter* qi)
 {
     qi->kv_sep_pos = NULL;
     qi->begin = qi->p;
@@ -574,21 +501,27 @@ inline void furi_query_iter_next(furi_query_iter* qi)
     }
 }
 
-inline furi_query_iter furi_make_query_iter_begin(const furi_sv query)
+FURI_INLINE furi_query_iter furi_make_query_iter_begin(const furi_sv query)
 {
     if (furi_sv_is_empty(query)) return furi_make_query_iter_end(query);
-    furi_query_iter r = { query.begin, query.begin, query.end, NULL };
+    furi_query_iter r = {query.begin, query.begin, query.end, NULL};
     --r.p; // hacky redirect for lack of initial item separator
     furi_query_iter_next(&r);
     return r;
 }
 
-inline bool furi_query_iter_is_done(const furi_query_iter qi)
+FURI_INLINE bool furi_query_iter_is_done(const furi_query_iter qi)
 {
     return qi.begin == qi.range_end;
 }
 
-inline furi_query_iter_value furi_query_iter_get_value(const furi_query_iter qi)
+typedef struct furi_query_iter_value
+{
+    furi_sv key;
+    furi_sv value;
+} furi_query_iter_value;
+
+FURI_INLINE furi_query_iter_value furi_query_iter_get_value(const furi_query_iter qi)
 {
     assert(qi.p <= qi.range_end); // out-of bounds check
 
@@ -607,7 +540,7 @@ inline furi_query_iter_value furi_query_iter_get_value(const furi_query_iter qi)
     return ret;
 }
 
-inline bool furi_query_iter_equal(const furi_query_iter a, const furi_query_iter b)
+FURI_INLINE bool furi_query_iter_equal(const furi_query_iter a, const furi_query_iter b)
 {
     return a.begin == b.begin;
 }
