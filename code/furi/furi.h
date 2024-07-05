@@ -146,13 +146,13 @@ FURI_INLINE furi_uri_split furi_split_uri(furi_sv u)
                 const char* f = furi_sv_find_first(u, '/'); // skip till end of authority
                 if (!f)
                 {
-                    // nothing more than authroity
+                    // nothing more than authority
                     ret.authority = u;
                     return ret;
                 }
 
                 ret.authority = furi_make_sv(u.begin, f);
-                u.begin = f + 1; // slice off authority and path sep
+                u.begin = f; // slice off authority
             }
 
             p = u.begin; // redirect p in u
@@ -167,7 +167,7 @@ FURI_INLINE furi_uri_split furi_split_uri(furi_sv u)
         }
     }
 
-    // here p is somewhere in u, where u has scheme and authroity removed (if present)
+    // here p is somewhere in u, where u has scheme and authority removed (if present)
 
     // preemptively set path to entire string
     // will update if needed
@@ -254,8 +254,15 @@ FURI_INLINE furi_sv furi_get_path_from_uri(furi_sv u)
         // otherwise we slice off what we have
         // first try with authority and if not slice off scheme AND colon
         if (a.end == u.end) return FURI_EMPTY_T(furi_sv); // nothing more than authority
-        u.begin = a.begin ? a.end : s.end;
-        ++u.begin; // slice off colon or slash
+
+        if (a.begin) {
+            // we have authority
+            u.begin = a.end;
+        }
+        else {
+            // only scheme
+            u.begin = s.end + 1; // slice off colon
+        }
     }
 
     for (const char* p = u.begin; p != u.end; ++p)
