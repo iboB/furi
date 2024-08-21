@@ -4,6 +4,7 @@
 #pragma once
 #include <string_view>
 #include <utility>
+#include <string>
 
 #define FURI_CPP_NAMESPACE furi::capi
 #include "furi.h"
@@ -18,7 +19,7 @@ public:
     opt_string_view() noexcept = default;
     opt_string_view(const char* cstring) noexcept // intentionally implicit
         : std::string_view(cstring) {}
-    opt_string_view(const std::string& s) noexcept
+    opt_string_view(const std::string& s) noexcept // intentionally implicit
         : std::string_view(s) {}
     constexpr opt_string_view(const std::string_view& str) noexcept // intentionally implicit
         : std::string_view(str) {}
