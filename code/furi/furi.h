@@ -121,6 +121,11 @@ typedef struct furi_uri_split
     furi_sv path;
     furi_sv query;
     furi_sv fragment;
+
+    // path + query + fragment (suitable for requests)
+    // never null
+    // if path is null, this will be set to "/"
+    furi_sv req_path;
 } furi_uri_split;
 
 
@@ -148,6 +153,7 @@ FURI_INLINE furi_uri_split furi_split_uri(furi_sv u)
                 {
                     // nothing more than authority
                     ret.authority = u;
+                    ret.req_path = furi_make_sv_from_string("/");
                     return ret;
                 }
 
@@ -168,6 +174,8 @@ FURI_INLINE furi_uri_split furi_split_uri(furi_sv u)
     }
 
     // here p is somewhere in u, where u has scheme and authority removed (if present)
+
+    ret.req_path = u; // .. so u is req_path
 
     // preemptively set path to entire string
     // will update if needed
@@ -242,7 +250,7 @@ FURI_INLINE furi_sv furi_get_authority_from_uri(furi_sv u)
     return u; // uri has authority and nothing else
 }
 
-FURI_INLINE furi_sv furi_get_path_from_uri(furi_sv u)
+FURI_INLINE furi_sv furi_get_req_or_path_from_uri(furi_sv u, bool req)
 {
     furi_sv s = furi_get_scheme_from_uri(u);
     furi_sv a = furi_get_authority_from_uri(u);
@@ -253,7 +261,11 @@ FURI_INLINE furi_sv furi_get_path_from_uri(furi_sv u)
         // in such case we don't touch u
         // otherwise we slice off what we have
         // first try with authority and if not slice off scheme AND colon
-        if (a.end == u.end) return FURI_EMPTY_T(furi_sv); // nothing more than authority
+        if (a.end == u.end) {
+            // nothing more than authority
+            if (req) return furi_make_sv_from_string("/");
+            return FURI_EMPTY_T(furi_sv);
+        }
 
         if (a.begin) {
             // we have authority
@@ -265,13 +277,25 @@ FURI_INLINE furi_sv furi_get_path_from_uri(furi_sv u)
         }
     }
 
-    for (const char* p = u.begin; p != u.end; ++p)
-    {
-        // break if we encounter query or fragment
-        if (*p == '?' || *p == '#') return furi_make_sv(u.begin, p);
+    if (!req) {
+        for (const char* p = u.begin; p != u.end; ++p)
+        {
+            // break if we encounter query or fragment
+            if (*p == '?' || *p == '#') return furi_make_sv(u.begin, p);
+        }
     }
 
     return u;
+}
+
+FURI_INLINE furi_sv furi_get_path_from_uri(furi_sv u)
+{
+    return furi_get_req_or_path_from_uri(u, false);
+}
+
+FURI_INLINE furi_sv furi_get_req_path_from_uri(furi_sv u)
+{
+    return furi_get_req_or_path_from_uri(u, true);
 }
 
 FURI_INLINE furi_sv furi_get_query_from_uri(furi_sv u)

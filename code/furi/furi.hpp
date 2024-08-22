@@ -47,6 +47,7 @@ struct uri_split
     opt_string_view path;
     opt_string_view query;
     opt_string_view fragment;
+    opt_string_view req_path;
 
     static uri_split from_capi(const capi::furi_uri_split& cs) noexcept
     {
@@ -56,6 +57,7 @@ struct uri_split
             opt_string_view(cs.path),
             opt_string_view(cs.query),
             opt_string_view(cs.fragment),
+            opt_string_view(cs.req_path),
         };
     }
 
@@ -87,6 +89,11 @@ struct uri_split
     static opt_string_view get_fragment_from_uri(opt_string_view u) noexcept
     {
         return opt_string_view(capi::furi_get_fragment_from_uri(u.c_sv()));
+    }
+
+    static opt_string_view get_req_path_from_uri(opt_string_view u) noexcept
+    {
+        return opt_string_view(capi::furi_get_req_path_from_uri(u.c_sv()));
     }
 };
 

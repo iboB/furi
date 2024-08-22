@@ -86,7 +86,9 @@ void test_uri_split(const char* struri,
     const char* authority,
     const char* path,
     const char* query,
-    const char* fragment)
+    const char* fragment,
+    const char* req_path
+)
 {
     furi_sv uri = furi_make_sv_from_string(struri);
     furi_uri_split s = furi_split_uri(uri);
@@ -105,6 +107,9 @@ void test_uri_split(const char* struri,
     TEST_ASSERT_EXPECT_SV(fragment, s.fragment);
     TEST_ASSERT(!fragment == !s.fragment.begin);
     TEST_ASSERT_SV_EQUAL(s.fragment, furi_get_fragment_from_uri(uri));
+    TEST_ASSERT_NOT_NULL(s.req_path.begin);
+    TEST_ASSERT_SV_EQUAL(s.req_path, furi_get_req_path_from_uri(uri));
+    TEST_ASSERT_EXPECT_SV(req_path, s.req_path);
 }
 
 void no_crash_uri_split_test(const char* struri)
@@ -123,21 +128,21 @@ void no_crash_uri_split_test(const char* struri)
 
 void uri_split(void)
 {
-    test_uri_split("", NULL, NULL, "", NULL, NULL);
-    test_uri_split("asdf", NULL, NULL, "asdf", NULL, NULL);
-    test_uri_split("x/y", NULL, NULL, "x/y", NULL, NULL);
-    test_uri_split("asdf/foo.bar", NULL, NULL, "asdf/foo.bar", NULL, NULL);
-    test_uri_split("/usr/bin/xyz", NULL, NULL, "/usr/bin/xyz", NULL, NULL);
-    test_uri_split("xx:asdf", "xx", NULL, "asdf", NULL, NULL);
-    test_uri_split("a-b://asdf", "a-b", "asdf", NULL, NULL, NULL);
-    test_uri_split("a-b://asdf/", "a-b", "asdf", "/", NULL, NULL);
-    test_uri_split("sys:x/y/z?q=4&qq=m", "sys", NULL, "x/y/z", "q=4&qq=m", NULL);
-    test_uri_split("sys:x/y/z?zz#", "sys", NULL, "x/y/z", "zz", "");
-    test_uri_split("mailto:g@gg.com", "mailto", NULL, "g@gg.com", NULL, NULL);
-    test_uri_split("http://x.com:43/abc?xyz#top", "http", "x.com:43", "/abc", "xyz", "top");
-    test_uri_split("https://[2001:db8::ff00:42:8329]:43/xxx", "https", "[2001:db8::ff00:42:8329]:43", "/xxx", NULL, NULL);
-    test_uri_split("file:///home/user/f.txt", "file", "", "/home/user/f.txt", NULL, NULL);
-    test_uri_split("file://localhost/home/user/f.txt", "file", "localhost", "/home/user/f.txt", NULL, NULL);
+    test_uri_split("", NULL, NULL, "", NULL, NULL, "");
+    test_uri_split("asdf", NULL, NULL, "asdf", NULL, NULL, "asdf");
+    test_uri_split("x/y", NULL, NULL, "x/y", NULL, NULL, "x/y");
+    test_uri_split("asdf/foo.bar", NULL, NULL, "asdf/foo.bar", NULL, NULL, "asdf/foo.bar");
+    test_uri_split("/usr/bin/xyz", NULL, NULL, "/usr/bin/xyz", NULL, NULL, "/usr/bin/xyz");
+    test_uri_split("xx:asdf", "xx", NULL, "asdf", NULL, NULL, "asdf");
+    test_uri_split("a-b://asdf", "a-b", "asdf", NULL, NULL, NULL, "/");
+    test_uri_split("a-b://asdf/", "a-b", "asdf", "/", NULL, NULL, "/");
+    test_uri_split("sys:x/y/z?q=4&qq=m", "sys", NULL, "x/y/z", "q=4&qq=m", NULL, "x/y/z?q=4&qq=m");
+    test_uri_split("sys:x/y/z?zz#", "sys", NULL, "x/y/z", "zz", "", "x/y/z?zz#");
+    test_uri_split("mailto:g@gg.com", "mailto", NULL, "g@gg.com", NULL, NULL, "g@gg.com");
+    test_uri_split("http://x.com:43/abc?xyz#top", "http", "x.com:43", "/abc", "xyz", "top", "/abc?xyz#top");
+    test_uri_split("https://[2001:db8::ff00:42:8329]:43/xxx", "https", "[2001:db8::ff00:42:8329]:43", "/xxx", NULL, NULL, "/xxx");
+    test_uri_split("file:///home/user/f.txt", "file", "", "/home/user/f.txt", NULL, NULL, "/home/user/f.txt");
+    test_uri_split("file://localhost/home/user/f.txt", "file", "localhost", "/home/user/f.txt", NULL, NULL, "/home/user/f.txt");
 
     no_crash_uri_split_test(":xx:#");
     no_crash_uri_split_test("////");

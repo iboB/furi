@@ -79,6 +79,8 @@ TEST_CASE("uri_split")
     CHECK(s.query == uri_split::get_query_from_uri(uri));
     CHECK(s.fragment == "top");
     CHECK(s.fragment == uri_split::get_fragment_from_uri(uri));
+    CHECK(s.req_path == "/abc?xyz#top");
+    CHECK(s.req_path == uri_split::get_req_path_from_uri(uri));
 
     s = uri_split::from_uri("");
     CHECK_FALSE(s.scheme);
@@ -87,6 +89,8 @@ TEST_CASE("uri_split")
     CHECK(s.path.empty());
     CHECK_FALSE(s.query);
     CHECK_FALSE(s.fragment);
+    CHECK(bool(s.req_path));
+    CHECK(s.req_path.empty());
 }
 
 TEST_CASE("authority_split")
