@@ -20,6 +20,12 @@ void decompose(const char* uri) {
 
     print_elem("scheme   ", split.scheme);
     print_elem("authority", split.authority);
+    if (!furi_sv_is_empty(split.authority)) {
+        furi_authority_split asplit = furi_split_authority(split.authority);
+        print_elem("  userinfo", asplit.userinfo);
+        print_elem("  host    ", asplit.host);
+        print_elem("  port    ", asplit.port);
+    }
     print_elem("path     ", split.path);
     print_elem("query    ", split.query);
     print_elem("fragment ", split.fragment);
