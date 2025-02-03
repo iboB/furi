@@ -35,7 +35,6 @@ if(FURI_BUILD_TESTS)
     add_subdirectory(test)
 endif()
 
-#~ if(FURI_BUILD_EXAMPLES)
-#~     add_subdirectory(example)
-#~ endif()
-
+if(FURI_BUILD_EXAMPLES)
+    add_subdirectory(example)
+endif()
