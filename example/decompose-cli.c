@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    for (int i=1; i<argv; ++i) {
+    for (int i=1; i<argc; ++i) {
         decompose(argv[i]);
     }
 
