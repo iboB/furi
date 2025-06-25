@@ -8,3 +8,4 @@ function(add_x name)
 endfunction()
 
 add_x(decompose decompose-cli.c)
+add_x(decompose-cpp decompose-cli.cpp)
