@@ -20,14 +20,28 @@ void decompose(const std::string& uri) {
 
     print_elem("scheme   ", split.scheme);
     print_elem("authority", split.authority);
-    if (!split.authority.empty()) {
+    if (split.authority) {
         auto asplit = furi::authority_split::from_authority(split.authority);
         print_elem("  userinfo", asplit.userinfo);
         print_elem("  host    ", asplit.host);
         print_elem("  port    ", asplit.port);
     }
     print_elem("path     ", split.path);
+    if (split.path) {
+        std::cout << "  elements: ";
+        for (auto i : furi::path_view(split.path)) {
+            std::cout << "\"" << i << "\" ";
+        }
+        std::cout << '\n';
+    }
     print_elem("query    ", split.query);
+    if (split.query) {
+        std::cout << "  elements: ";
+        for (auto i : furi::query_view(split.query)) {
+            std::cout << "\"" << i.first << "\"=\"" << i.second << "\" ";
+        }
+        std::cout << '\n';
+    }
     print_elem("fragment ", split.fragment);
 }
 

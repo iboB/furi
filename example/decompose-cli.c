@@ -4,14 +4,19 @@
 #include <furi/furi.h>
 #include <stdio.h>
 
-void print_elem(const char* title, furi_sv sv) {
-    printf("%s: ", title);
+void print_sv(furi_sv sv) {
     if (furi_sv_is_null(sv)) {
-        puts("<none>");
+        printf("<none>");
     }
     else {
-        printf("\"%.*s\"\n", (int)furi_sv_length(sv), sv.begin);
+        printf("\"%.*s\"", (int)furi_sv_length(sv), sv.begin);
     }
+}
+
+void print_elem(const char* title, furi_sv sv) {
+    printf("%s: ", title);
+    print_sv(sv);
+    puts("");
 }
 
 void decompose(const char* uri) {
@@ -27,7 +32,26 @@ void decompose(const char* uri) {
         print_elem("  port    ", asplit.port);
     }
     print_elem("path     ", split.path);
+    if (!furi_sv_is_empty(split.path)) {
+        printf("  elements: ");
+        for (furi_path_iter it = furi_make_path_iter_begin(split.path); !furi_path_iter_is_done(it); furi_path_iter_next(&it)) {
+            print_sv(furi_path_iter_get_value(it));
+            printf(" ");
+        }
+        puts("");
+    }
     print_elem("query    ", split.query);
+    if (!furi_sv_is_empty(split.query)) {
+        printf("  elements: ");
+        for (furi_query_iter it = furi_make_query_iter_begin(split.query); !furi_query_iter_is_done(it); furi_query_iter_next(&it)) {
+            furi_query_iter_value value = furi_query_iter_get_value(it);
+            print_sv(value.key);
+            printf("=");
+            print_sv(value.value);
+            printf(" ");
+        }
+        puts("");
+    }
     print_elem("fragment ", split.fragment);
 }
 
