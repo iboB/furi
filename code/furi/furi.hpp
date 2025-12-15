@@ -23,6 +23,8 @@ public:
         : std::string_view(s) {}
     constexpr opt_string_view(const std::string_view& str) noexcept // intentionally implicit
         : std::string_view(str) {}
+    opt_string_view(const char* begin, size_t size) noexcept
+        : std::string_view(begin, size) {}
     opt_string_view(const char* begin, const char* end) noexcept
         : std::string_view(begin, end - begin) {}
     opt_string_view(const capi::furi_sv& csv) noexcept // intentionally implicit
