@@ -170,7 +170,7 @@ void test_authority_split(const char* strauthority,
     TEST_ASSERT(!port == !s.port.begin);
     TEST_ASSERT_SV_EQUAL(s.port, furi_get_port_from_authority(a));
     TEST_ASSERT_EXPECT_SV(url_hostname, s.url_hostname);
-    TEST_ASSERT(url_hostname != s.url_hostname.begin);
+    TEST_ASSERT(!url_hostname == !s.url_hostname.begin);
     TEST_ASSERT_SV_EQUAL(s.url_hostname, furi_get_url_hostname_from_authority(a));
 }
 
