@@ -105,12 +105,15 @@ struct authority_split
     opt_string_view host;
     opt_string_view port;
 
+    opt_string_view url_hostname;
+
     static authority_split from_capi(const capi::furi_authority_split& as) noexcept
     {
         return {
             opt_string_view(as.userinfo),
             opt_string_view(as.host),
             opt_string_view(as.port),
+            opt_string_view(as.url_hostname),
         };
     }
 
@@ -132,6 +135,11 @@ struct authority_split
     static opt_string_view get_port_from_authority(opt_string_view a) noexcept
     {
         return opt_string_view(capi::furi_get_port_from_authority(a.c_sv()));
+    }
+
+    static opt_string_view get_url_hostname_from_authority(opt_string_view a) noexcept
+    {
+        return opt_string_view(capi::furi_get_url_hostname_from_authority(a.c_sv()));
     }
 };
 

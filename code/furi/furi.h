@@ -323,6 +323,9 @@ typedef struct furi_authority_split
     furi_sv userinfo;
     furi_sv host;
     furi_sv port;
+
+    // URL hostname: almost always equal to host, except for an ipv6 URL where it will NOT include the brackets
+    furi_sv url_hostname;
 } furi_authority_split;
 
 FURI_INLINE furi_authority_split furi_split_authority(furi_sv a)
@@ -340,7 +343,12 @@ FURI_INLINE furi_authority_split furi_split_authority(furi_sv a)
     // will update if needed
     ret.host = a;
 
-    if (furi_sv_is_empty(a)) return ret; // empty host
+    if (furi_sv_is_empty(a))
+    {
+        // empty host
+        ret.url_hostname = ret.host;
+        return ret;
+    }
 
     // check for ipv6
     if (a.begin[0] == '[')
@@ -350,6 +358,7 @@ FURI_INLINE furi_authority_split furi_split_authority(furi_sv a)
         ++bf; // include the ']'
         ret.host.end = bf;
         a.begin = bf; // slice off
+        ret.url_hostname = furi_make_sv(ret.host.begin + 1, ret.host.end - 1); // slice off brackets
         if (furi_sv_is_empty(a)) return ret; // valid. no port
         if (a.begin[0] != ':') return FURI_EMPTY_T(furi_authority_split); // invalid uri
         ret.port = furi_make_sv(a.begin + 1, a.end);
@@ -370,6 +379,7 @@ FURI_INLINE furi_authority_split furi_split_authority(furi_sv a)
         }
     }
 
+    ret.url_hostname = ret.host;
     return ret;
 }
 
@@ -387,7 +397,7 @@ FURI_INLINE furi_sv furi_get_host_from_authority(furi_sv a)
 {
     const char* p = furi_sv_find_first(a, '@');
     if (p) a.begin = p + 1; // cut the @ symbol as well
-    p = furi_sv_find_first(a, ']');; // ipv6 check
+    p = furi_sv_find_first(a, ']'); // ipv6 check
     if (p)
     {
         a.end = p + 1;
@@ -408,6 +418,18 @@ FURI_INLINE furi_sv furi_get_port_from_authority(furi_sv a)
     if (!p) return FURI_EMPTY_T(furi_sv);
     a.begin = p + 1;
     return a;
+}
+
+FURI_INLINE furi_sv furi_get_url_hostname_from_authority(furi_sv a)
+{
+    furi_sv host = furi_get_host_from_authority(a);
+    if (furi_sv_length(host) >= 2 && host.begin[0] == '[')
+    {
+        // ipv6, slice off brackets
+        host.begin += 1;
+        host.end -= 1;
+    }
+    return host;
 }
 
 

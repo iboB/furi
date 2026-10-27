@@ -95,20 +95,37 @@ TEST_CASE("uri_split")
 
 TEST_CASE("authority_split")
 {
-    auto authority = "alice:pass@foo.com:44";
-    auto s = authority_split::from_authority(authority);
-    CHECK(s.userinfo == "alice:pass");
-    CHECK(s.userinfo == authority_split::get_userinfo_from_authority(authority));
-    CHECK(s.host == "foo.com");
-    CHECK(s.host == authority_split::get_host_from_authority(authority));
-    CHECK(s.port == "44");
-    CHECK(s.port == authority_split::get_port_from_authority(authority));
+    {
+        auto authority = "alice:pass@foo.com:44";
+        auto s = authority_split::from_authority(authority);
+        CHECK(s.userinfo == "alice:pass");
+        CHECK(s.userinfo == authority_split::get_userinfo_from_authority(authority));
+        CHECK(s.host == "foo.com");
+        CHECK(s.host == authority_split::get_host_from_authority(authority));
+        CHECK(s.url_hostname == "foo.com");
+        CHECK(s.url_hostname == authority_split::get_url_hostname_from_authority(authority));
+        CHECK(s.port == "44");
+        CHECK(s.port == authority_split::get_port_from_authority(authority));
+    }
 
-    s = authority_split::from_authority("");
-    CHECK_FALSE(s.userinfo);
-    CHECK(bool(s.host));
-    CHECK(s.host.empty());
-    CHECK_FALSE(s.port);
+    {
+        auto s = authority_split::from_authority("");
+        CHECK_FALSE(s.userinfo);
+        CHECK(bool(s.host));
+        CHECK(s.host.empty());
+        CHECK_FALSE(s.port);
+    }
+
+    {
+        auto authority = "bob:pass@[2001:db8::ff00:42:8329]";
+        auto s = authority_split::from_authority(authority);
+        CHECK(s.userinfo == "bob:pass");
+        CHECK(s.host == "[2001:db8::ff00:42:8329]");
+        CHECK(s.host == authority_split::get_host_from_authority(authority));
+        CHECK(s.url_hostname == "2001:db8::ff00:42:8329");
+        CHECK(s.url_hostname == authority_split::get_url_hostname_from_authority(authority));
+        CHECK_FALSE(s.port);
+    }
 }
 
 TEST_CASE("userinfo_split")

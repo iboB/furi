@@ -155,7 +155,8 @@ void uri_split(void)
 void test_authority_split(const char* strauthority,
     const char* userinfo,
     const char* host,
-    const char* port)
+    const char* port,
+    const char* url_hostname)
 {
     furi_sv a = furi_make_sv_from_string(strauthority);
     furi_authority_split s = furi_split_authority(a);
@@ -168,6 +169,9 @@ void test_authority_split(const char* strauthority,
     TEST_ASSERT_EXPECT_SV(port, s.port);
     TEST_ASSERT(!port == !s.port.begin);
     TEST_ASSERT_SV_EQUAL(s.port, furi_get_port_from_authority(a));
+    TEST_ASSERT_EXPECT_SV(url_hostname, s.url_hostname);
+    TEST_ASSERT(url_hostname != s.url_hostname.begin);
+    TEST_ASSERT_SV_EQUAL(s.url_hostname, furi_get_url_hostname_from_authority(a));
 }
 
 void no_crash_authority_split_test(const char* strauthority)
@@ -181,19 +185,19 @@ void no_crash_authority_split_test(const char* strauthority)
 
 void authority_split(void)
 {
-    test_authority_split("", NULL, "", NULL);
-    test_authority_split("xxx", NULL, "xxx", NULL);
-    test_authority_split("alice@abc", "alice", "abc", NULL);
-    test_authority_split("bob:pass@123.33", "bob:pass", "123.33", NULL);
-    test_authority_split("foo.com:34", NULL, "foo.com", "34");
-    test_authority_split("alice:pass@foo.com:44", "alice:pass", "foo.com", "44");
+    test_authority_split("", NULL, "", NULL, "");
+    test_authority_split("xxx", NULL, "xxx", NULL, "xxx");
+    test_authority_split("alice@abc", "alice", "abc", NULL, "abc");
+    test_authority_split("bob:pass@123.33", "bob:pass", "123.33", NULL, "123.33");
+    test_authority_split("foo.com:34", NULL, "foo.com", "34", "foo.com");
+    test_authority_split("alice:pass@foo.com:44", "alice:pass", "foo.com", "44", "foo.com");
 
     // ipv6
-    test_authority_split("[::1]", NULL, "[::1]", NULL);
-    test_authority_split("bob:pass@[2001:db8::ff00:42:8329]", "bob:pass", "[2001:db8::ff00:42:8329]", NULL);
-    test_authority_split("[::ff]:222", NULL, "[::ff]", "222");
-    test_authority_split("x@[::2]:5", "x", "[::2]", "5");
-    test_authority_split("x:y@[::b]:222", "x:y", "[::b]", "222");
+    test_authority_split("[::1]", NULL, "[::1]", NULL, "::1");
+    test_authority_split("bob:pass@[2001:db8::ff00:42:8329]", "bob:pass", "[2001:db8::ff00:42:8329]", NULL, "2001:db8::ff00:42:8329");
+    test_authority_split("[::ff]:222", NULL, "[::ff]", "222", "::ff");
+    test_authority_split("x@[::2]:5", "x", "[::2]", "5", "::2");
+    test_authority_split("x:y@[::b]:222", "x:y", "[::b]", "222", "::b");
 
     no_crash_authority_split_test("]");
     no_crash_authority_split_test("[");
